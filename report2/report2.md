@@ -46,7 +46,7 @@ Summarized from [Wikipedia](https://en.wikipedia.org/wiki/Inter-process_communic
 
 ## Q5 How to realize inter-process connection
 
-It seems there is no definition for inter-process connection. Therefore, connection-based and channel-based inter-process communication is presumed. Approaches of connection-based and channel-based inter-process communication are the followings, which are typically realized by sockets, pipes or message queues. The table is summarized from [Wikipedia Inter-process communication](https://en.wikipedia.org/wiki/Inter-process_communication#Approaches)
+It seems there is no definition for inter-process connection. Therefore, connection-based and channel-based inter-process communication are presumed. Approaches of connection-based and channel-based inter-process communication are the followings, which are typically realized by sockets, pipes or message queues. The table is summarized from [Wikipedia Inter-process communication](https://en.wikipedia.org/wiki/Inter-process_communication#Approaches)
 
 |                            Method                            |                      Short Description                       |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
@@ -61,19 +61,52 @@ Specifically, in Unix-like OSs, `stdin` and `stdout` can be connected via pipes 
 
 ## Q6 Write the prototype of function `fork`
 
-According to [man.org](http://man7.org/linux/man-pages/man2/fork.2.html), the prototype of `fork` of Linux in C is `pid_t fork(void);`
+According to [man.org](http://man7.org/linux/man-pages/man2/fork.2.html), the prototype of `fork` of Linux in C is 
+
+```c
+#include <sys/types.h>
+#include <unistd.h>
+pid_t fork(void);
+```
 
 ## Q7 Write the prototype of function `signal`
 
-According to [man.org](http://man7.org/linux/man-pages/man2/signal.2.html), the prototype of `signal` of Linux in C is `sighandler_t signal(int signum, sighandler_t handler);`
+According to [man.org](http://man7.org/linux/man-pages/man2/signal.2.html), the prototype of `signal` of Linux in C is 
+
+```c
+#include <signal.h>
+typedef void (*sighandler_t)(int);
+sighandler_t signal(int signum, sighandler_t handler);
+```
 
 ## Q8 Write the prototype of function `pipe`
 
-According to [man.org](http://man7.org/linux/man-pages/man2/pipe.2.html), the prototype of `pipe` of Linux in C is `int pipe2(int pipefd[2], int flags);`
+According to [man.org](http://man7.org/linux/man-pages/man2/pipe.2.html), the prototype of `pipe` of Linux in C is 
+
+```c
+#include <unistd.h>
+/* On Alpha, IA-64, MIPS, SuperH, and SPARC/SPARC64; see NOTES */
+struct fd_pair {
+    long fd[2];
+};
+struct fd_pair pipe();
+/* On all other architectures */
+int pipe(int pipefd[2]);
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include <fcntl.h>              /* Obtain O_* constant definitions */
+#include <unistd.h>
+int pipe2(int pipefd[2], int flags);
+```
 
 ## Q9 Write the prototype of function `tcsetpgrp`
 
-According to [man.org](http://man7.org/linux/man-pages/man3/tcgetpgrp.3.html), the prototype of `tcsetpgrp` of Linux in C is `int tcsetpgrp(int fd, pid_t pgrp);`
+According to [man.org](http://man7.org/linux/man-pages/man3/tcgetpgrp.3.html), the prototype of `tcsetpgrp` of Linux in C is
+
+```c
+#include <unistd.h>
+pid_t tcgetpgrp(int fd);
+int tcsetpgrp(int fd, pid_t pgrp);
+```
 
 ## Q10 Execute `fork.c` and observe, please describe the result (not execution result)
 
@@ -89,15 +122,15 @@ As for buffering, according to a [post](http://www.pixelbeat.org/programming/std
 
  ![buffering problem in unix shell pipeline](http://www.pixelbeat.org/programming/stdio_buffering/pipe_stdio_example.png)
 
-`stdin` and `stdout` are buffered at user level, i.e. within user space. And according to [another post](https://eklitzke.org/stdout-buffering), `stdout` is line-buffered if it is TTY, i.e. the open file descriptor is referring to a terminal, which is the case when we run `fork.c` using shells.
+`stdin` and `stdout` are buffered at the user level, i.e. within user space. And according to [another post](https://eklitzke.org/stdout-buffering), `stdout` is line-buffered if it is TTY, i.e. the open file descriptor is referring to a terminal, which is the case when we run `fork.c` using shells.
 
 With these following premises:
 
-* `stdout` is buffered at user level
+* `stdout` is buffered at the user level
 * `stdout` is line-buffered
 * `exec` will clean up all user-level data
 
-we can easily conclude that, as `printf("argc = %d, argv[0] = %s", argc, argv[0])` does not output a return carriage `\n`, the string will not be output immediately and be buffered at user level, which is then cleaned up by `exec`(specifically `execvp` in this case). Therefore, the string will not be output to shells.
+we can easily conclude that as `printf("argc = %d, argv[0] = %s", argc, argv[0])` does not output a return carriage `\n`, the string will not be output immediately and be buffered at user level, which is then cleaned up by `exec`(specifically `execvp` in this case). Therefore, the string will not be output to shells.
 
 ## Q11 Execute `fork.c` and observe, please describe how to distinguish between parent and child processes in a program
 
@@ -105,37 +138,70 @@ We can use the return value of `fork()` to distinguish between parent and child 
 
 ## Q12 Execute `pipe.c` and observe, please describe the result (not execution result)
 
-```mermaid
-graph TB;
-style start fill:#DDD
-start[Main Entry] -- process A -->fork1(("fork()"))
-fork1-- process A-->fork2(("fork()"))
-fork1-- process B-->process_b["read from pipe"]
-fork2-- process A-->process_a["write pipe"]
-fork2-- process C-->redirect[stdout->pipe in]
-redirect-->exec_more[exec more]
-process_b--blocked until-->recv_msg[received msg]
-process_a-.send msg via pipe.->recv_msg
-recv_msg-->ls[exec ls]
-ls-."write to sdout->pipe in".->exec_more
-process_a-->wait["wait for Process C"]
-exec_more-->returnC["Process C exit"]
-returnC-->wait
-wait-->returnA["Process A exit"]
-ls-->returnB["Process B exit"]
-```
+The result can be explained in a quite straightforward way using the diagram below which is self-explanatory.
 
+![img](https://raw.githubusercontent.com/ifsheldon/OSLearning/master/report2/Process.png)
 
+The picture may be loaded slowly because the Great Wall blocked some content servers of Github. If the picture does not show up, please click this [link](![img](https://raw.githubusercontent.com/ifsheldon/OSLearning/master/report2/Process.png)) (may need a VPN).
+
+What is noteworthy is that under extreme cases, if `stdout` has not been redirected to `pipe in` in Process C when Process B executes `ls`, the output of `ls` may be forwarded to the shell instead of the pipe.
 
 ## Q13 Execute `pipe.c` and observe. Is `execvp(prog2_argv[0],prog2_argv)//(Line 56)` executed? And why?
 
+Yes, it is executed because `execvp(prog2_argv[0],prog2_argv)` is telling the kernel to execute the command`more`, which is in fact executed when the program runs.
+
 ## Q14 Execute `signal.c` and observe, please describe the result (not execution result)
+
+When running `signal.c`, there are two processes, and their sigaction handlers are both `void ChildHandler(int sig, siginfo_t* sip, void* notused)`. If we just run the program normally, what we can see just two processes output their PIDs and run forever. If we use `kill` to send signals to these processes, we can see different results depending on various signals we sent. The results are below:
+
+| Signal Receiver | SIGNAL                                                       | Output                                                       |
+| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Child process   | `SIGALRM` , `SIGKILL` or other signals that cause the process to exit | "The process generating the signal is PID: %d\n"<br>"The child is gone!!!!!\n" |
+| Child process   | `SIGSTOP`, `SIGCHLD` or other signals that do not cause the process to exit | "The process generating the signal is PID: %d\n"<br/>"Uninteresting\n" |
+| Parent process  | all signals                                                  | "The process generating the signal is PID: %d\n"             |
+
+This is because `sa_sigaction` is bound to `void ChildHandler(int sig, siginfo_t* sip, void* notused)`, when a signal comes in, this handler will be called, and `void ChildHandler(int sig, siginfo_t* sip, void* notused)` is also bound to the handler of `SIGCHLD`, so when a `SIGCHLD` signal comes in, it will also be called.
 
 ## Q15 Execute `signal.c` and observe. Please answer, how to execute function ChildHandler?
 
+We can use `kill` to send signals to processes and then trigger/call the signal handler, which in this case is `ChildHandler`. As for different signals, we can use the arguments of `kill` to send various signals, such as `SIGKILL` and `SIGCHLD`.
+
 ## Q16 Execute `process.c` and observe, please describe the result (not execution result)
+
+The program contains a minor bug, the change made is shown below.
+
+```c
+// before
+if (!cpid)
+{
+    fprintf(stdout,"ID(child)=%d\n",getpid());
+    /* 使子进程所在的进程组成为前台进程组，然后执行vi */
+    setpgid(0,0);
+    tcsetpgrp(0,getpid());
+    execvp("/bin/vi","vi",NULL);
+    exit(-1);
+}
+
+// after
+if (!cpid)
+{
+    fprintf(stdout,"ID(child)=%d\n",getpid());
+    /* 使子进程所在的进程组成为前台进程组，然后执行vi */
+    setpgid(0,0);
+    tcsetpgrp(0,getpid());
+    char* argv[]={"vi",NULL};
+    execvp("/usr/bin/vi", argv);
+    exit(-1);
+}
+signal(SIGTTOU, SIG_IGN);
+```
+
+When the program begin to run, `vi` will be shown on the shell, and after quitting from `vi`, the program enter an infinite loop, taking input from the shell and echo back on the output of shell. The reason of this output is simple. The program first forks two processes, and the child process execute `vi`, taking the input from shell first, while the parent process waits for the child process to exit. After the child process exits, the parent process take the shell’s input and enter a loop, echoing users’ input.
 
 ## Q17 Execute `process.c` and observe. Please answer, how many ./process in the process list? And what’s the difference between them?
 
+There’s only one `./process` in the process list, and `vi`, which is the child process of it, is also in the list.
+
 ## Q18 Execute `process.c` and observe. Please answer, what happens after killing the main process
 
+After killing the main process, the child process `vi` exits and outputs error messages.
