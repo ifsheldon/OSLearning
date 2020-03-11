@@ -140,7 +140,7 @@ We can use the return value of `fork()` to distinguish between parent and child 
 
 The result can be explained in a quite straightforward way using the diagram below which is self-explanatory.
 
-![img](https://raw.githubusercontent.com/ifsheldon/OSLearning/master/report2/Process.png)
+![img](./Process.png)
 
 The picture may be loaded slowly because the Great Wall blocked some content servers of Github. If the picture does not show up, please click this [link](![img](https://raw.githubusercontent.com/ifsheldon/OSLearning/master/report2/Process.png)) (may need a VPN).
 
@@ -148,7 +148,7 @@ What is noteworthy is that under extreme cases, if `stdout` has not been redirec
 
 ## Q13 Execute `pipe.c` and observe. Is `execvp(prog2_argv[0],prog2_argv)//(Line 56)` executed? And why?
 
-Yes, it is executed because `execvp(prog2_argv[0],prog2_argv)` is telling the kernel to execute the command`more`, which is in fact executed when the program runs.
+Yes, it is executed because `execvp(prog2_argv[0],prog2_argv)` is telling the kernel to execute the command`more`, which is in fact executed when the program runs. Only when the child process is not forked successfully, this line will not be run.
 
 ## Q14 Execute `signal.c` and observe, please describe the result (not execution result)
 
