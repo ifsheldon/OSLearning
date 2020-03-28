@@ -12,7 +12,7 @@
 
 int jobid = 0;
 int siginfo = 1;
-int fifo;
+int fifo;// file descriptor of cmd queue
 int globalfd;
 
 struct waitqueue *head = NULL;
@@ -23,9 +23,10 @@ void schedule()
 	struct jobinfo *newjob = NULL;
 	struct jobcmd cmd;
 	int count = 0;
-	
-	bzero(&cmd, DATALEN);
-	if ((count = read(fifo, &cmd, DATALEN)) < 0)
+	// DATALEN = sizeof(struct jobcmd)
+	bzero(&cmd, DATALEN); // init cmd and clear space with zeros
+	//read from fifo pipe and place data of DATALEN into cmd
+	if ((count = read(fifo, &cmd, DATALEN)) < 0) // read from the command queue
 		error_sys("read fifo failed");
 	
 #ifdef DEBUG
@@ -181,7 +182,7 @@ void sig_handler(int sig, siginfo_t *info, void *notused)
 	int ret;
 	
 	switch (sig) {
-	case SIGVTALRM:
+	case SIGVTALRM: // when the timer runs out
 		schedule();
 		return;
 
@@ -189,7 +190,7 @@ void sig_handler(int sig, siginfo_t *info, void *notused)
 		ret = waitpid(-1, &status, WNOHANG);
 		if (ret == 0 || ret == -1)
 			return;
-		
+		// if exits normally using exit()
 		if (WIFEXITED(status)) {
 		#ifdef DEBUG
 		//printf("%d %d %d\n", ret, info->si_pid, current->job->pid);
@@ -199,11 +200,15 @@ void sig_handler(int sig, siginfo_t *info, void *notused)
 			printf("normal termation, exit status = %d\tjid = %d, pid = %d\n\n",
 				WEXITSTATUS(status), current->job->jid, current->job->pid);
 
-		}  else if (WIFSIGNALED(status)) {
+		}  
+		// else if the child process terminated due to unhandled signal
+		else if (WIFSIGNALED(status)) {
 		    printf("abnormal termation, signal number = %d\tjid = %d, pid = %d\n\n",
 				WTERMSIG(status), current->job->jid, current->job->pid);
 
-		} else if (WIFSTOPPED(status)) {
+		}
+		// else if the child process has been stopped 
+		else if (WIFSTOPPED(status)) {
 		    printf("child stopped, signal number = %d\tjid = %d, pid = %d\n\n",
 				WSTOPSIG(status), current->job->jid, current->job->pid);
 		}
@@ -216,7 +221,6 @@ void sig_handler(int sig, siginfo_t *info, void *notused)
 
 void do_enq(struct jobinfo *newjob, struct jobcmd enqcmd)
 {
-	struct	waitqueue *newnode, *p;
 	int		i=0, pid;
 	char	*offset, *argvec, *q;
 	char	**arglist;
@@ -240,10 +244,10 @@ void do_enq(struct jobinfo *newjob, struct jobcmd enqcmd)
 	offset = enqcmd.data;
 	argvec = enqcmd.data;
 	while (i < enqcmd.argnum) {
-
+		// split data by ':' into array of string
 		if (*offset == ':') {
 
-			*offset++ = '\0';
+			*offset++ = '\0';//////
 			q = (char*)malloc(offset - argvec);
 			strcpy(q,argvec);
 			arglist[i++] = q;
@@ -264,12 +268,13 @@ void do_enq(struct jobinfo *newjob, struct jobcmd enqcmd)
 #endif
 	
 	/* add new job to the queue */
-	
+	struct	waitqueue *newnode, *p;
 	newnode = (struct waitqueue*)malloc(sizeof(struct waitqueue));
 	newnode->next = NULL;
 	newnode->job = newjob;
 	
 	if (head) {
+		// find the tail
 		for (p = head; p->next != NULL; p = p->next);
 
 		p->next = newnode;
@@ -307,7 +312,7 @@ void do_enq(struct jobinfo *newjob, struct jobcmd enqcmd)
 		exit(1);
 		
 	} else {
-		
+		// in parent process
 		newjob->pid = pid;
 		printf("\nnew job: jid=%d, pid=%d\n", newjob->jid, newjob->pid);
 		
@@ -348,6 +353,7 @@ void do_deq(struct jobcmd deqcmd)
 		selectprev = NULL;
 
 		if (head) {
+			// search whole linked list
 			for (prev = head, p = head; p != NULL; prev = p, p = p->next) {
 				if (p->job->jid == deqid) {
 					select = p;
@@ -355,12 +361,13 @@ void do_deq(struct jobcmd deqcmd)
 					break;
 				}
 			}			
-
+			// skip the select one
 			selectprev->next = select->next;
 			if (select == selectprev)	head = NULL;
 		}
 
 		if (select) {
+			// free all resources
 			for (i = 0; (select->job->cmdarg)[i] != NULL; i++) {
 				free((select->job->cmdarg)[i]);
 				(select->job->cmdarg)[i] = NULL;
@@ -394,6 +401,7 @@ void do_stat()
 	printf( "JID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\tSTATE\n");
 	
 	if (current) {
+		// str(current->job->create_time)
 		strcpy(timebuf,ctime(&(current->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';
 		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
@@ -405,7 +413,7 @@ void do_stat()
 			timebuf,
 			"RUNNING" );
 	}
-	
+	//iterate through all the linked list
 	for (p = head; p != NULL; p = p->next) {
 		strcpy (timebuf,ctime(&(p->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';		

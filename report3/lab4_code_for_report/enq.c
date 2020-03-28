@@ -54,7 +54,7 @@ int main(int argc,char *argv[])
 	enqcmd.owner = getuid();
 	enqcmd.argnum = argc;
 	offset = enqcmd.data;
-	
+	// ":".join(argv)
 	while (argc-- > 0) {
 		strcpy(offset,*argv);
 		strcat(offset,":");
