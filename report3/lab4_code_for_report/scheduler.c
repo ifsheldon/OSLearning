@@ -372,9 +372,12 @@ void do_deq(struct jobcmd deqcmd)
 					break;
 				}
 			}			
-			// skip the select one
+			
+			if (select == selectprev) //choosing head
+				head = head->next;
+				
+			// sew the linked list
 			selectprev->next = select->next;
-			if (select == selectprev)	head = NULL;
 		}
 
 		if (select) {
