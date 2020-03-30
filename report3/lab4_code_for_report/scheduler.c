@@ -418,7 +418,7 @@ void do_stat()
 		// str(current->job->create_time)
 		strcpy(timebuf,ctime(&(current->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';
-		printf("%d\t\t%s\t\t%d\t\t%d\t\t\t%d\t\t%d\t\t%d\t\t%d\t\t%s\t\t%s\n",
+		printf("%d\t\t%s\t\t%d\t\t%d\t\t\t%d\t\t%d\t\t%d\t\t%d\t\t%s\t%s\n",
 			current->job->jid,
 			current->job->cmdarg[0],
 			current->job->curpri,
@@ -434,7 +434,7 @@ void do_stat()
 	for (p = head; p != NULL; p = p->next) {
 		strcpy (timebuf,ctime(&(p->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';		
-		printf("%d\t\t%s\t\t%d\t\t%d\t\t\t%d\t\t%d\t\t%d\t\t%d\t\t%s\t\t%s\n",
+		printf("%d\t\t%s\t\t%d\t\t%d\t\t\t%d\t\t%d\t\t%d\t\t%d\t\t%s\t%s\n",
 			p->job->jid,
 			p->job->cmdarg[0],
 			p->job->curpri,
