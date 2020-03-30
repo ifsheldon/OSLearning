@@ -412,13 +412,13 @@ void do_stat()
 	struct waitqueue *p;
 	char timebuf[BUFLEN];
 	
-	printf( "JID\tJNAME\tCUR_PRIO\tDEFT_PRIO\tPID\tOWNER\tRUNTIME\tWAITTIME\t\t\tCREATTIME\t\t\tSTATE\n");
+	printf( "JID\t\t\tJNAME\t\t\tCUR_PRIO\t\t\tDEFT_PRIO\t\t\tPID\t\t\tOWNER\t\t\tRUNTIME\t\t\tWAITTIME\t\t\tCREATTIME\t\t\tSTATE\n");
 	
 	if (current) {
 		// str(current->job->create_time)
 		strcpy(timebuf,ctime(&(current->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';
-		printf("%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t\t\t%s\t\t\t%s\n",
+		printf("%d\t\t\t%s\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%d\t%d\t\t\t%s\t\t\t%s\n",
 			current->job->jid,
 			current->job->cmdarg[0],
 			current->job->curpri,
@@ -434,7 +434,7 @@ void do_stat()
 	for (p = head; p != NULL; p = p->next) {
 		strcpy (timebuf,ctime(&(p->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';		
-		printf("%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t\t\t%s\t\t\t%s\n",
+		printf("%d\t\t\t%s\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%d\t\t\t%s\t\t\t%s\n",
 			p->job->jid,
 			p->job->cmdarg[0],
 			p->job->curpri,
