@@ -83,6 +83,12 @@ void updateall()
 	/* update ready job's wait_time */
 	for (p = head; p != NULL; p = p->next) {
 		p->job->wait_time += 1;
+		int curprior = p->job->curpri;
+		if(curprior<3)
+		{
+			curprior++;
+			p->job->curpri = curprior;
+		}
 	}
 }
 
@@ -105,11 +111,15 @@ struct waitqueue* jobselect()
 		{
 			for (prev = head, p = head; p != NULL; prev = p, p = p->next) 
 			{
-				//pick the job of highest priority
-				if (p->job->curpri > highest) {
-					select = p;
-					selectprev = prev;
-					highest = p->job->curpri;
+				//pick the job of higher priority or longer waiting time
+				if (p->job->curpri >= highest) 
+				{
+					if((p->job->curpri > highest) || (p->job->wait_time > select->job->wait_time))
+					{
+						select = p;
+						selectprev = prev;
+						highest = p->job->curpri;
+					}
 				}
 			}
 
