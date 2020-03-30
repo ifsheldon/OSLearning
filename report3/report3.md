@@ -18,11 +18,11 @@ According to [wikipedia](https://en.wikipedia.org/wiki/Job_(computing))
 
 > In [computing](https://en.wikipedia.org/wiki/Computing), a **job** is a unit of work or unit of execution (that performs said work). A component of a job (as a unit of work) is called a *[task](https://en.wikipedia.org/wiki/Task_(computing))* or a *step* (if sequential, as in a [job stream](https://en.wikipedia.org/wiki/Job_stream)). As a unit of execution, a job may be concretely identified with a single [process](https://en.wikipedia.org/wiki/Process_(computing)), which may in turn have subprocesses which perform the tasks or steps that comprise the work of the job; or with a [process group](https://en.wikipedia.org/wiki/Process_group); or with an abstract reference to a process or process group
 
-Simply, jobs are a general concept that represent a unit of work or execution while a process is a concrete specification of a job, which has an actual implementation.
+Simply, jobs are a general concept that represent a unit of work or execution and a job may contain multiple processes while a process is a concrete specification of a job, which has an actual implementation.
 
 ## 3. What are the differences between job scheduling and process scheduling?
 
-The granularities of job scheduling and process scheduling differ. As the definition of jobs implies, a job may be concretized by a process group which has multiple processes. Therefore, sometimes, scheduling a job may imply scheduling multiple processes. 
+The granularities of job scheduling and process scheduling differ. As the definition of jobs implies, a job may be concretized by a process group which has multiple processes. Therefore, sometimes, scheduling a job may imply scheduling multiple processes. Sometimes, scheduling a job means picking work to do in the storage, loading them into memory and creating processes while scheduling processes means picking processes in the ready queue to run.
 
 However, if a job is concretized by a standalone process, then from the view of implementation, job scheduling is equivalent to process scheduling, though conceptually a process is a specification of a job. 
 
@@ -62,19 +62,91 @@ Practical Differences:
 * Writing to a field of a class or a structure does not overwrite the values of other fields while it is not the case in unions
 * Generally speaking, structures and unions have less overhead than classes.
 
-## 5. How many statuses are in a job? And what are they?
+## 5. How many statuses are in a job(in the code for this report—scheduler)? And what are they?
 
-本次实验作业有几种状态？请列举/////////////????
+There are 3 kinds of statuses, which are `READY`, `RUNNING`, `DONE`, meaning a job ready to run, executing and having finished running, respectively.
 
 ## 6. What programs for job control are used in this experiment? And their function?
 
+|   Program   |                           Function                           |
+| :---------: | :----------------------------------------------------------: |
+|    deq.c    |        As a commander, ask scheduler to dequeue a job        |
+|    enq.c    |        As a commander, ask scheduler to enqueue a job        |
+|   stat.c    |     As a commander, ask scheduler to show status of jobs     |
+| scheduler.c | As a scheduler, schedule jobs to run, suspend and terminate, and also display status of jobs |
+
 ## 7. What is used for inter-process communication in this experiment? And its function?
+
+|   IPC Approach   |                           Function                           |
+| :--------------: | :----------------------------------------------------------: |
+| Named Pipe(FIFO) | For job controllers(`deq.c`, `enq.c`, `stat.c`) to pass commands to `scheduler.c` |
+|      Signal      | For parent and child processes to interchange messages and commands |
 
 ## 8. What should be noted when printing out the job name
 
+We need to modify `printf( "JID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\tSTATE\n");` to add titles. Also, we need to modify the following codes that contain `printf`
+
+```c
+if (current) {
+		// str(current->job->create_time)
+		strcpy(timebuf,ctime(&(current->job->create_time)));
+		timebuf[strlen(timebuf) - 1] = '\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n", //need to add %s for outputting name
+			current->job->jid,
+			current->job->pid,
+			current->job->ownerid,
+			current->job->run_time,
+			current->job->wait_time,
+			timebuf,
+			"RUNNING" );
+	}
+	//iterate through all the linked list
+	for (p = head; p != NULL; p = p->next) {
+		strcpy (timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf) - 1] = '\0';		
+		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",//need to add %s for outputting name
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			timebuf,
+			"READY" );
+	}
+```
+
 ## 9. Submit a job that takes more than 100 milliseconds to run (pleas paste your code)
 
+```c
+#include<unistd.h>
+int main()
+{
+    while(1)
+        usleep(10000);//sleep 10ms
+    return 0;
+}
+```
+
 ## 10. List the bugs you found and your fix (Describe the cause of bugs in detail and how to modify it)
+
+1. ```c
+   //in scheduler.c
+   void updateall()
+   {
+   	struct waitqueue *p;
+   	
+   	/* update running job's run_time */
+   	if (current)
+   		current->job->run_time += 1;   
+   	
+   	/* update ready job's wait_time */
+   	for (p = head; p != NULL; p = p->next) {
+   		p->job->wait_time += 1；//chinese semicolon here, just change it to english semi colon
+   	}
+   }
+   ```
+
+2. 
 
 ## 11. Run the job scheduler program, And analyze the execution of the submitted job
 
