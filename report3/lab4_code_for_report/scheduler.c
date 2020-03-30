@@ -486,7 +486,7 @@ int main()
 	/* timer interval: 0s, 100ms */
 	
 	interval.tv_sec = 0;
-	interval.tv_usec = 100;
+	interval.tv_usec = 100*1000;//microseconds-> 100ms
 	
 	new.it_interval = interval;
 	new.it_value = interval;
