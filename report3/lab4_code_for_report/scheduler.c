@@ -96,7 +96,7 @@ struct waitqueue* jobselect()
 
 	if (head) {
 		for (prev = head, p = head; p != NULL; prev = p, p = p->next) {
-
+			//pick the job of highest priority
 			if (p->job->curpri > highest) {
 				select = p;
 				selectprev = prev;
@@ -398,14 +398,17 @@ void do_stat()
 	struct waitqueue *p;
 	char timebuf[BUFLEN];
 	
-	printf( "JID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\tSTATE\n");
+	printf( "JID\tJNAME\tCUR_PRIO\tDEFT_PRIO\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\tSTATE\n");
 	
 	if (current) {
 		// str(current->job->create_time)
 		strcpy(timebuf,ctime(&(current->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';
-		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+		printf("%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
 			current->job->jid,
+			current->job->cmdarg[0],
+			current->job->curpri,
+			current->job->defpri,
 			current->job->pid,
 			current->job->ownerid,
 			current->job->run_time,
@@ -417,8 +420,11 @@ void do_stat()
 	for (p = head; p != NULL; p = p->next) {
 		strcpy (timebuf,ctime(&(p->job->create_time)));
 		timebuf[strlen(timebuf) - 1] = '\0';		
-		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+		printf("%d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
 			p->job->jid,
+			p->job->cmdarg[0],
+			p->job->curpri,
+			p->job->defpri,
 			p->job->pid,
 			p->job->ownerid,
 			p->job->run_time,
