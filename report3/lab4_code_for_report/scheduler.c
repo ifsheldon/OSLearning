@@ -94,19 +94,31 @@ struct waitqueue* jobselect()
 	select = NULL;
 	selectprev = NULL;
 
-	if (head) {
-		for (prev = head, p = head; p != NULL; prev = p, p = p->next) {
-			//pick the job of highest priority
-			if (p->job->curpri > highest) {
-				select = p;
-				selectprev = prev;
-				highest = p->job->curpri;
+	if (head) 
+	{
+		if(head->next==NULL) // if only one node, pick the head
+		{
+			select = head;
+			head = NULL;
+		}
+		else
+		{
+			for (prev = head, p = head; p != NULL; prev = p, p = p->next) 
+			{
+				//pick the job of highest priority
+				if (p->job->curpri > highest) {
+					select = p;
+					selectprev = prev;
+					highest = p->job->curpri;
+				}
 			}
-		}		
 
-		selectprev->next = select->next;
+			if(select==selectprev) // means selected one is head
+				head = head->next; // picked the head and thus replace it with its successor
 
-		if (select == selectprev) head = NULL;
+			selectprev->next = select->next; // sew the linked list
+			select->next = NULL; // avoid cycle
+		}	
 	}
 	
 	return select;
