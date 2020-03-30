@@ -145,10 +145,9 @@ void jobswitch()
 	}
 	
 	if (next == NULL && current == NULL)          /* no job to run */
-		
 		return;
-	
-	else if (next != NULL && current == NULL) {   /* start new job */
+	else if (next != NULL && current == NULL) 
+	{   /* start new job */
 		
 	    printf("begin start new job\n");
 		current = next;
@@ -156,8 +155,8 @@ void jobswitch()
 		current->job->state = RUNNING;
 		kill(current->job->pid, SIGCONT);
 		return;
-		
-	} else if (next != NULL && current != NULL) { /* do switch */
+	} else if (next != NULL && current != NULL) 
+	{ /* do switch */
 		
 		kill(current->job->pid, SIGSTOP);
 		current->job->curpri = current->job->defpri;
