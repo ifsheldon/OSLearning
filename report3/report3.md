@@ -302,6 +302,40 @@ int main()
    }
    ```
 
+7. Did not update priorities
+
+   ```c
+   //before
+   void updateall()
+   {
+   	struct waitqueue *p;
+   	/* update running job's run_time */
+   	if (current)
+   		current->job->run_time += 1;   
+   	/* update ready job's wait_time */
+   	for (p = head; p != NULL; p = p->next) {
+   		p->job->wait_time += 1;
+   	}
+   }
+   //after
+   void updateall()
+   {
+   	struct waitqueue *p;
+   	/* update running job's run_time */
+   	if (current)
+   		current->job->run_time += 1;   
+   	/* update ready job's wait_time */
+   	for (p = head; p != NULL; p = p->next) {
+   		p->job->wait_time += 1;
+   		int curprior = p->job->curpri;
+   		if(curprior<3){
+   			curprior++;
+   			p->job->curpri = curprior;
+   		}
+   	}
+   }
+   ```
+
    
 
 ## 11. Run the job scheduler program, And analyze the execution of the submitted job
