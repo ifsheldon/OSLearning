@@ -264,6 +264,33 @@ int main()
    }
    ```
 
+5. Unintended output bug. After dequeuing a job, the next call of `jobswitch()` may output `begin start new job`, which should only be output when a brand new job start to run. The reason why this bug exists is that it is not only when a brand new job is run for the first time that the predicate `next!= NULL&& current == NULL` is fulfilled, but also when the `current` has been dequeued and `next=jobselect()` has been run.
+
+   ```c
+   // in jobswitch
+   //before
+   else if (next != NULL && current == NULL) {   /* start new job */
+   	    printf("begin start new job\n");
+   		current = next;
+   		next = NULL;
+   		current->job->state = RUNNING;
+   		kill(current->job->pid, SIGCONT);
+   		return;
+   }
+   //after
+   else if (next != NULL && current == NULL) {   /* start new job */
+   		if(next->job->run_time == 0)
+   	    	printf("begin start new job\n");
+   		current = next;
+   		next = NULL;
+   		current->job->state = RUNNING;
+   		kill(current->job->pid, SIGCONT);
+   		return;
+   }
+   ```
+
+   
+
 ## 11. Run the job scheduler program, And analyze the execution of the submitted job
 
 1. After a job has been submitted, it is first placed in the FIFO queue.
