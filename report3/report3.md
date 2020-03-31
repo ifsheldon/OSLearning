@@ -289,6 +289,19 @@ int main()
    }
    ```
 
+6. Sync bug. Inside `do_enq()`, after forking, if the parent process runs far ahead of the child process such that the parent process signals `SIGCONT` first then the child process raises `SIGSTOP`, this may cause synchronous problems that lead to child process running forever. 
+
+   ```c
+   //in do_enq()
+   else {
+   		// in parent process
+   		waitpid(pid,NULL,0);// add this line
+   		newjob->pid = pid;
+   		printf("\nnew job: jid=%d, pid=%d\n", newjob->jid, newjob->pid);
+   		
+   }
+   ```
+
    
 
 ## 11. Run the job scheduler program, And analyze the execution of the submitted job
