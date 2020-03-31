@@ -334,6 +334,7 @@ void do_enq(struct jobinfo *newjob, struct jobcmd enqcmd)
 		
 	} else {
 		// in parent process
+		waitpid(pid,NULL,0);
 		newjob->pid = pid;
 		printf("\nnew job: jid=%d, pid=%d\n", newjob->jid, newjob->pid);
 		
