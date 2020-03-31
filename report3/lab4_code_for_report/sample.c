@@ -1,11 +1,8 @@
-#include <unistd.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 int main()
 {
-    while(1)
-    {
-        usleep(500*1000); //sleep 500ms
-        printf("output\n");
-    }
+    for(clock_t start=clock(); clock()-start< 101*1000; );
     return 0;
 }
