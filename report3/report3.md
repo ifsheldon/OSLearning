@@ -120,11 +120,12 @@ if (current) {
 
 
 ```c
-#include<unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 int main()
 {
-    while(1)
-        usleep(10000);//sleep 10ms
+    for(clock_t start=clock(); (double)((clock()-start)/CLOCKS_PER_SEC)< 2.1; );
     return 0;
 }
 ```
