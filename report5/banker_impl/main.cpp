@@ -1,11 +1,11 @@
 #include <iostream>
 #include <string>
-#include <cstdio>
 #include <sstream>
 #include <hash_map>
 #include <cstdlib>
 #include <memory.h>
 
+#define DEBUG
 using namespace std;
 
 int main()
@@ -16,7 +16,11 @@ int main()
     static string request = "request";
     static string terminate = "terminate";
     ios::sync_with_stdio(false);
-    freopen("Sample.in", "r", stdin);
+
+#ifdef DEBUG
+    freopen("Sample.in", "r", stdin);// redirect stdio
+#endif
+
     int resourceTypeNum;
     cin >> resourceTypeNum;
     size_t quantityArraySize = sizeof(int) * resourceTypeNum;
