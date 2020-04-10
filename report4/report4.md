@@ -88,7 +88,7 @@ The order of the producer’s write operations:
 5. move the tail of the buffer to the next place where is empty
 6. release the mutex
 
-Relationship: These operations just like mirroring each other, and they are kind of symmetric.
+Relationship: These operations just like mirroring each other, and they are kind of symmetric. Also, as can be seen in the code, once the buffer is full, the producer will wait and then the next thread to run is definitely the consumer thread, and once the buffer is empty, the consumer will wait and the next thread to run is definitely the producer thread. As for other situations, it is up to the scheduler to manage which thread to run and also up to the thread that first locks the mutex.
 
 ## Q13. Producer-Consumer Problem（understand producer_consumer.c）: Briefly describe the result of the program
 
@@ -120,3 +120,36 @@ Basically, the mutual exclusion here is realized by locking a mutex. A mutex can
 However, when executing `pthread_cond_wait()`, the mutex is unlocked inside the CS, and then the executing thread is blocked inside the function call. So to ensure the mutual exclusion when the thread is waken up, this thread should contend for the mutex(i.e. try to lock the mutex) right after it is unblocked. This mechanism is implicitly realized by schedulers and libraries, as stated in the [man page of pthread_cond_signal](https://linux.die.net/man/3/pthread_cond_signal):
 
 > The **thread**(s) that are unblocked shall contend for the mutex according to the scheduling policy (if applicable), and as if each had called `pthread_mutex_lock()`
+
+```
+boolean[] ca; //chopsticks_available
+cond[] conds;
+mutex m;
+
+think()
+m.lock()
+//if need chopstick i and j
+while(true)
+    if(ca[i]&&ca[j])
+        ca[i] = false;
+        ca[j] = false;
+        break
+    else if(!ca[i])
+        pthread_cond_wait(cond[i],m)
+    else
+        pthread_cond_wait(cond[j],m)
+m.release()
+
+eat()
+
+m.lock()
+ca[i] = true;
+ca[j] = true;
+signal(cond[i])
+signal(cond[j]);
+m.release()
+        
+```
+
+
+

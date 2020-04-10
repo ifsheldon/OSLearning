@@ -44,6 +44,8 @@
 |          10          |  D   |     D     |  D   |  D   |    A     |
 | Avg Turn-around Time | 4.5  |    4.5    | 4.75 | 4.5  |   4.25   |
 
+
+
 ## Q2
 
 ![image-20200404165658813](C:\Users\Maple\AppData\Roaming\Typora\typora-user-images\image-20200404165658813.png)
@@ -52,9 +54,17 @@
 
 Because there are at most 5 twos and 5 threes to be added to x.
 
+#### Std answer:
+
+![image-20200408164957351](C:\Users\Maple\AppData\Roaming\Typora\typora-user-images\image-20200408164957351.png)
+
 ### b. Give a concise proof why x≠2 when both threads have completed
 
 Because at least one thread will be executed and one loop will be gone through, so the added amount will at least be 2.
+
+#### Std answer:
+
+Same as Q2a.
 
 ### c. Suppose we replace ‘x = x+3’ in Thread B with an atomic double increment operation atomicIncr2(x) that cannot be preempted while being executed. What are all the possible final values of x? Explain. 
 
@@ -63,6 +73,10 @@ The value of x will at least be 10. Possible values can be 10, 12, 14, 16, 18, 2
 Explanation:
 
 ///////////////
+
+#### Std answer:
+
+need to check
 
 ### d. What needs to be saved and restored on a context switch between two threads in the same process? What if the two threads are in different processes? Be explicit
 
@@ -77,13 +91,22 @@ Everything in a PCB including:///////
 * TCBs
 * Heap
 * Open File Descriptors
-* 
+
+
+
+#### Std answer
+
+need to check
 
 ### e. Under what circumstances can a multithreaded program complete more quickly than a non-multithreaded program? Keep in mind that multithreading has context-switch overhead associated with it
 
 * There are operations that can be executed in parallel
 * The are execution units that can run parallel without conflicts
 * The speed-up can cover the overhead of context switch
+
+#### Std answer:
+
+same
 
 ## Q3
 
@@ -95,6 +118,10 @@ Everything in a PCB including:///////
 | ------------- | ------------------------------------------------------------ |
 | Starting main | CS 302 SUSTech, in child<br>Ending main: 0<br>CS302 SUSTech, in parent<br>Ending main: 123 |
 
+#### Std answer:
+
+same
+
 ### b.
 
 ![image-20200404173400884](C:\Users\Maple\AppData\Roaming\Typora\typora-user-images\image-20200404173400884.png)
@@ -102,6 +129,10 @@ Everything in a PCB including:///////
 | std out                                                    | test.txt                                     |
 | ---------------------------------------------------------- | -------------------------------------------- |
 | Starting main<br>CS302 SUSTech, in child<br>Ending main: 0 | CS302 SUSTech, in parent<br>Ending main: 123 |
+
+#### Std answer
+
+same
 
 ### c.
 
@@ -135,17 +166,63 @@ int main()
 }
 ```
 
+#### Std answer:
+
+need to check, my answer is false
+
+```c
+void apple()
+{
+    pid_t oval = getppid();//answer line, get parent pid
+    kill(oval, SIGTEST);
+}
+void orange(int i)
+{
+    val =1;
+}
+int val = 0;
+int main()
+{
+    pid_t pid = fork();
+	bind sigtest handler to orange();//answer line
+    if(pid==0) //in child
+    {
+       apple();//answer line
+    }else
+    {
+      waitpid(pid);//answer line
+    }
+    printf("val=%d\n",val)
+}
+```
+
+
+
 ### d.
 
 If a child process sends a `SIGKILL` signal to its parent, what happens to the parent process and the child process? Can the parent prevent this from happening?
 
 ///////////////don’t know
 
+#### Std answer:
+
+need to check
+
+##### Extra
+
+如果在terminal，然后建立父子进程，按ctrl+c会发生什么？
+
+会杀死进程组的进程，都死了
+
 ### e.
 
 Consider the following scenario. A process forks a child process and the parent process waits on it. Then, the child exits normally and the parent is unblocked. Finally, the parent makes another wait call on the child process. What happens to this last wait call and to the parent process?
 
 The wait call exits immediately.
+
+#### Std answer
+
+need to check
 
 ### f.
 
@@ -155,11 +232,19 @@ Because kernel is crucial, and we want data in kernel keep separate from user-sp
 
 Because each thread has its own local variables and we do not want to mix up this local variables, which is important for a thread. 
 
+#### Std answer:
+
+need to check
+
 ## Q4
 
 ### a. What is the difference between “Parallelism” and “Concurrent” in job scheduling
 
 ////// don’t know
+
+#### Std answer:
+
+need to check
 
 ### b.  Please draw the life cycle of process and thread, then compare the difference of process and thread
 
@@ -177,13 +262,25 @@ finished-->terminated
 * Processes do not share memory while threads in one process share memory space.
 * the control unit of a process is PCB while TCB is the control unit of a thread.
 
+#### Std answer:
+
+need to check
+
 ### c. Please describe the actions in operating system when “fork()” function executed.
 
 The program will shift to system mode, and then the kernel will copy all contents of a process in PCB and memory and create a new child process with the same content. After copying, the child process and parent process both return from `fork()`, getting 0 and the child’s pid respectively.
 
+#### Std answer:
+
+need to check
+
 ### d. Please list the storage unit with its access latency in a modern commodity personal computer (as many as possible), and analyze the underlying trade-off strategy in current storage system.
 
 //////don’t know
+
+#### Std answer:
+
+need to check
 
 ### e. Please give the clear definition of user time, system time and real time, then give two concrete examples to show 1) real time < user time + system time and 2) real time > user time + system time.
 
@@ -193,7 +290,13 @@ User time: The CPU time that a user program takes.
 
 Kernel time: ////////////
 
+#### Std answer:
+
+need to check
+
 ## Q5 Multiple Choices
+
+
 
 1. In which condition(s), a new process will be created in Linux? 
 
@@ -251,39 +354,41 @@ Kernel time: ////////////
 
        A. 240ms B. 260ms C. 340ms D. 360ms
 
-13.  In a single-processor multi-process system, if there are several ready processes, then the wrong statement about process scheduling is (). 
+13. //mistaken to skipped
+
+14. In a single-processor multi-process system, if there are several ready processes, then the wrong statement about process scheduling is (). 
 
     A. process scheduling can execute when a process terminates 
-    
+
     B. process scheduling can execute when a process creates 
-    
+
     C. process scheduling can execute when a process is in critical section 
-    
+
     D. process scheduling can execute when system call finished and system returns to user space
-    
-14.  For the statements about thread and process, which one is correct? 
-     
+
+15. For the statements about thread and process, which one is correct? 
+
     A. No matter the system supports threads or not, process is the basic unit of resource allocation. 
-    
+
     B. Thread is the basic unit of resource allocation and process is the basic unit of scheduling. 
-    
+
     C. the switches of user-level and kernel-level threads all need the support of kernel. 
-    
+
     D. every thread in the same process has distinct address space. 
-    
-15. Which will lead a user process switch from user space to kernel space? 
-    
+
+16. Which will lead a user process switch from user space to kernel space? 
+
     I. division by zero 
-    
+
     II. sin() function call 
-    
+
     III. read() system call 
-    
+
     A. I and II B. I and III C. II and III D. I, II and III
-    
-16.  After computer boosting, Operating System will be finally loaded to () A. BIOS B. ROM C. Disk D. RAM
-    
-17. A system is running three processes P1, P2 and P3, the time ratios of CPU computation and I/O are shown as follows
+
+17. After computer boosting, Operating System will be finally loaded to () A. BIOS B. ROM C. Disk D. RAM
+
+18. A system is running three processes P1, P2 and P3, the time ratios of CPU computation and I/O are shown as follows
 
     ![image-20200404191821566](C:\Users\Maple\AppData\Roaming\Typora\typora-user-images\image-20200404191821566.png)
 
@@ -295,7 +400,7 @@ Kernel time: ////////////
 
     D. P1>P2=P3
 
-18. Suppose the following instructions have been loaded to instruction registers, which instruction cannot lead CPU to switch from user space to kernel space?
+19. Suppose the following instructions have been loaded to instruction registers, which instruction cannot lead CPU to switch from user space to kernel space?
 
     A．DIV R0，R1; // (R0)/(R1) → R0 
 
@@ -305,7 +410,7 @@ Kernel time: ////////////
 
     D．MOV R0,addr；// move the data in addr from main memory to R0 
 
-19. Which will lead the state of a process to change from running to ready? 
+20. Which will lead the state of a process to change from running to ready? 
 
     A．execute wait() 
 
@@ -316,6 +421,8 @@ Kernel time: ////////////
     D．preempt by high priority process
 
 
+
+### Need to check Std answers
 
 
 
