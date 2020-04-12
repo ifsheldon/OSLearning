@@ -9,7 +9,7 @@
 using namespace std;
 using namespace __gnu_cxx;
 
-bool isSafe(const int *remainResources, int len, const hash_map<int, int *> &need)
+bool isSafe(const int *remainResources, const int *newNeed, int len, int pid, const hash_map<int, int *> &need)
 {
     return false;
 }
@@ -40,6 +40,7 @@ int main()
     vector<bool> oks;
     int *requestQuantities = (int *) malloc(quantityArraySize);
     int *remainResourcesAfterRequest = (int *) malloc(quantityArraySize);
+    int *newNeedAfterRequest = (int *) malloc(quantityArraySize);
     string line;
     while (getline(cin, line))
     {
@@ -108,8 +109,8 @@ int main()
             bool exceedMaxRequest = false;
             for (int i = 0; i < resourceTypeNum; i++)
             {
-                int totalRequest = allocated[i] + requestQuantities[i];
-                if (totalRequest > maxRequest[i])
+                int totalAllocated = allocated[i] + requestQuantities[i];
+                if (totalAllocated > maxRequest[i])
                 {
                     exceedMaxRequest = true;
                     break;
@@ -121,9 +122,24 @@ int main()
                 continue;
             }
             // not exceed max request and resources permit, then check safety
+            int *need = needTable.find(pid)->second;
             for (int i = 0; i < resourceTypeNum; i++)
+            {
                 remainResourcesAfterRequest[i] = currentAvailableQuantities[i] - request[i];
-
+                newNeedAfterRequest[i] = need[i] - request[i];
+            }
+            bool safe = isSafe(remainResourcesAfterRequest, newNeedAfterRequest, resourceTypeNum, pid, needTable);
+            if (safe)
+            {
+                //assign resources
+                for (int i = 0; i < resourceTypeNum; i++)
+                {
+                    need[i] = newNeedAfterRequest[i];
+                    currentAvailableQuantities[i] = remainResourcesAfterRequest[i];
+                    allocated[i] = allocated[i] + requestQuantities[i];
+                }
+            }
+            oks.push_back(safe);
 
         } else if (type == terminate)
         {
@@ -151,6 +167,7 @@ int main()
     free(requestQuantities);
     free(remainResourcesAfterRequest);
     free(currentAvailableQuantities);
+    free(newNeedAfterRequest);
     for (auto &it : maxRequestTable)
         free(it.second);
 
