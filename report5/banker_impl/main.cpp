@@ -7,6 +7,12 @@
 
 #define DEBUG
 using namespace std;
+using namespace __gnu_cxx;
+
+bool isSafe(const int *remainResources, int len, const hash_map<int, int *> &need)
+{
+    return false;
+}
 
 int main()
 {
@@ -28,11 +34,12 @@ int main()
     for (int i = 0; i < resourceTypeNum; i++)
         cin >> currentAvailableQuantities[i];
 
-    __gnu_cxx::hash_map<int, int *> maxRequestTable;
-    __gnu_cxx::hash_map<int, int *> allocationTable;
+    hash_map<int, int *> maxRequestTable;
+    hash_map<int, int *> allocationTable;
+    hash_map<int, int *> needTable;
     vector<bool> oks;
     int *requestQuantities = (int *) malloc(quantityArraySize);
-    int *resourcesAfterRequest = (int *) malloc(quantityArraySize);
+    int *remainResourcesAfterRequest = (int *) malloc(quantityArraySize);
     string line;
     while (getline(cin, line))
     {
@@ -45,8 +52,12 @@ int main()
         if (type == neww)
         {
             int *maxRequestQuantities = (int *) malloc(quantityArraySize);
+            int *need = (int *) malloc(quantityArraySize);
             for (int i = 0; i < resourceTypeNum; i++)
+            {
                 ss >> maxRequestQuantities[i];
+                need[i] = maxRequestQuantities[i];
+            }
             // also need to check maxAvailableQuantities before adding to hashmap
             bool exceedMax = false;
             for (int i = 0; i < resourceTypeNum; i++)
@@ -57,9 +68,14 @@ int main()
                     break;
                 }
             }
-            if (!exceedMax)
+            if (exceedMax)
+            {
+                free(maxRequestQuantities);
+                free(need);
+            } else
             {
                 maxRequestTable[pid] = maxRequestQuantities;
+                needTable[pid] = need;
                 int *allocatedQuantities = (int *) malloc(quantityArraySize);
                 memset(allocatedQuantities, 0, quantityArraySize);
                 allocationTable[pid] = allocatedQuantities;
@@ -106,16 +122,19 @@ int main()
             }
             // not exceed max request and resources permit, then check safety
             for (int i = 0; i < resourceTypeNum; i++)
-                resourcesAfterRequest[i] = allocated[i] + request[i];
+                remainResourcesAfterRequest[i] = currentAvailableQuantities[i] - request[i];
 
 
         } else if (type == terminate)
         {
             int *allocated = allocationTable.find(pid)->second;
+            int *need = needTable.find(pid)->second;
             for (int i = 0; i < resourceTypeNum; i++)
                 currentAvailableQuantities[i] += allocated[i];
             allocationTable.erase(pid);
+            needTable.erase(pid);
             free(allocated);
+            free(need);
             oks.push_back(true);
         } else
         {
@@ -130,12 +149,15 @@ int main()
 
     // free all allocated vars
     free(requestQuantities);
-    free(resourcesAfterRequest);
+    free(remainResourcesAfterRequest);
     free(currentAvailableQuantities);
     for (auto &it : maxRequestTable)
         free(it.second);
 
     for (auto &it : allocationTable)
+        free(it.second);
+
+    for (auto &it:needTable)
         free(it.second);
 
     return 0;
