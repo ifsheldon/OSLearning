@@ -24,13 +24,10 @@ int main()
     int resourceTypeNum;
     cin >> resourceTypeNum;
     size_t quantityArraySize = sizeof(int) * resourceTypeNum;
-    int *maxAvailableQuantities = (int *) malloc(quantityArraySize);
     int *currentAvailableQuantities = (int *) malloc(quantityArraySize);
     for (int i = 0; i < resourceTypeNum; i++)
-    {
-        cin >> maxAvailableQuantities[i];
-        currentAvailableQuantities[i] = maxAvailableQuantities[i];
-    }
+        cin >> currentAvailableQuantities[i];
+
     string line;
     __gnu_cxx::hash_map<int, int *> maxRequestTable;
     __gnu_cxx::hash_map<int, int *> allocationTable;
@@ -52,7 +49,7 @@ int main()
             bool exceedMax = false;
             for (int i = 0; i < resourceTypeNum; i++)
             {
-                if (maxAvailableQuantities[i] < maxRequestQuantities[i])
+                if (currentAvailableQuantities[i] < maxRequestQuantities[i])
                 {
                     exceedMax = true;
                     break;
@@ -85,8 +82,7 @@ int main()
     for (auto &&i : oks)
         cout << (i ? ok : nok) << endl;
 
-    free(maxAvailableQuantities);
-    maxAvailableQuantities = nullptr;
+
     free(currentAvailableQuantities);
     currentAvailableQuantities = nullptr;
     for (auto &it : maxRequestTable)
