@@ -9,22 +9,19 @@
 using namespace std;
 using namespace __gnu_cxx;
 
-bool isSafe(const int *remainResources, int resourcesTypes, const hash_map<int, int *> &needTable,
+bool isSafe(int *remainResources, int resourcesTypes, const hash_map<int, int *> &needTable,
             const hash_map<int, int *> &allocationTable)
 {
     int jobNum = needTable.size();
     bool *finished = (bool *) malloc(sizeof(bool) * jobNum);
     memset(finished, false, sizeof(bool) * jobNum);
     int *pids = (int *) malloc(sizeof(int) * jobNum);
-    int *dynamicAvailableResources = (int *) malloc(sizeof(int) * resourcesTypes);
-    memcpy(dynamicAvailableResources, remainResources, sizeof(int) * resourcesTypes);
     int tmp = 0;
     for (auto &it:needTable)
     {
         pids[tmp] = it.first;
         tmp++;
     }
-
     int finishedJobCount = 0;
     bool passTest = false;
     for (int idx = 0; idx < jobNum; idx++)
@@ -38,7 +35,7 @@ bool isSafe(const int *remainResources, int resourcesTypes, const hash_map<int, 
             bool exceedAvailable = false;
             for (int i = 0; i < resourcesTypes; i++)
             {
-                if (need[i] > dynamicAvailableResources[i])
+                if (need[i] > remainResources[i])
                 {
                     exceedAvailable = true;
                     break;
@@ -48,10 +45,10 @@ bool isSafe(const int *remainResources, int resourcesTypes, const hash_map<int, 
                 continue;
             else
             {
-                finished[pid] = true;
+                finished[idx] = true;
                 int *allocated = allocationTable.find(pid)->second;
                 for (int i = 0; i < resourcesTypes; i++)
-                    dynamicAvailableResources[i] += allocated[i];
+                    remainResources[i] += allocated[i];
                 finishedJobCount++;
                 idx = -1;
             }
@@ -63,32 +60,49 @@ bool isSafe(const int *remainResources, int resourcesTypes, const hash_map<int, 
         }
     }
 
-    free(dynamicAvailableResources);
     free(pids);
     free(finished);
     return passTest;
 }
 
-bool isSafe(const int *remainResources, int *newNeed, int pid, int resourcesTypes, const hash_map<int, int *> &need,
+bool isSafe(const int *currentAvailableResources, const int *request, int pid, int resourcesTypes,
+            const hash_map<int, int *> &needTable,
             const hash_map<int, int *> &allocationTable)
 {
 
     hash_map<int, int *> newNeedTable;
-    for (auto &it:need)
+    hash_map<int, int *> newAllocationTable;
+    int *need = needTable.find(pid)->second;
+    int *newNeed = (int *) malloc(sizeof(int) * resourcesTypes);
+    int *remainResources = (int *) malloc(sizeof(int) * resourcesTypes);
+    int *allocated = allocationTable.find(pid)->second;
+    int *newAllocated = (int *) malloc(sizeof(int) * resourcesTypes);
+    for (int i = 0; i < resourcesTypes; i++)
     {
-        int id = it.first;
-        newNeedTable[id] = id == pid ? newNeed : it.second;
+        remainResources[i] = currentAvailableResources[i] - request[i];
+        newNeed[i] = need[i] - request[i];
+        newAllocated[i] = allocated[i] + request[i];
     }
-    return isSafe(remainResources, resourcesTypes, newNeedTable, allocationTable);
+    for (auto &it:needTable)
+        newNeedTable[it.first] = it.second;
+    for (auto &it:allocationTable)
+        newAllocationTable[it.first] = it.second;
+    newNeedTable[pid] = newNeed;
+    newAllocationTable[pid] = newAllocated;
+    bool safe = isSafe(remainResources, resourcesTypes, newNeedTable, newAllocationTable);
+    free(newNeed);
+    free(remainResources);
+    free(newAllocated);
+    return safe;
 }
 
 int main()
 {
-    static string ok = "OK";
-    static string nok = "NOT OK";
-    static string neww = "new";
-    static string request = "request";
-    static string terminate = "terminate";
+    static string OK = "OK";
+    static string NOK = "NOT OK";
+    static string NEW = "new";
+    static string REQUEST = "request";
+    static string TERMINATE = "terminate";
     ios::sync_with_stdio(false);
 
 #ifdef DEBUG
@@ -107,8 +121,6 @@ int main()
     hash_map<int, int *> needTable;
     vector<bool> oks;
     int *requestQuantities = (int *) malloc(quantityArraySize);
-    int *remainResourcesAfterRequest = (int *) malloc(quantityArraySize);
-    int *newNeedAfterRequest = (int *) malloc(quantityArraySize);
     string line;
     while (getline(cin, line))
     {
@@ -118,7 +130,7 @@ int main()
         int pid;
         string type;
         ss >> pid >> type;
-        if (type == neww)
+        if (type == NEW)
         {
             int *maxRequestQuantities = (int *) malloc(quantityArraySize);
             int *need = (int *) malloc(quantityArraySize);
@@ -150,7 +162,7 @@ int main()
                 allocationTable[pid] = allocatedQuantities;
             }
             oks.push_back(!exceedMax);
-        } else if (type == request)
+        } else if (type == REQUEST)
         {
             //get request
             for (int i = 0; i < resourceTypeNum; i++)
@@ -191,26 +203,21 @@ int main()
             }
             // not exceed max request and resources permit, then check safety
             int *need = needTable.find(pid)->second;
-            for (int i = 0; i < resourceTypeNum; i++)
-            {
-                remainResourcesAfterRequest[i] = currentAvailableQuantities[i] - request[i];
-                newNeedAfterRequest[i] = need[i] - request[i];
-            }
-            bool safe = isSafe(remainResourcesAfterRequest, newNeedAfterRequest, pid, resourceTypeNum, needTable,
+            bool safe = isSafe(currentAvailableQuantities, requestQuantities, pid, resourceTypeNum, needTable,
                                allocationTable);
             if (safe)
             {
                 //assign resources
                 for (int i = 0; i < resourceTypeNum; i++)
                 {
-                    need[i] = newNeedAfterRequest[i];
-                    currentAvailableQuantities[i] = remainResourcesAfterRequest[i];
-                    allocated[i] = allocated[i] + requestQuantities[i];
+                    need[i] -= requestQuantities[i];
+                    currentAvailableQuantities[i] -= requestQuantities[i];
+                    allocated[i] += requestQuantities[i];
                 }
             }
             oks.push_back(safe);
 
-        } else if (type == terminate)
+        } else if (type == TERMINATE)
         {
             int *allocated = allocationTable.find(pid)->second;
             int *need = needTable.find(pid)->second;
@@ -230,13 +237,11 @@ int main()
 
     }
     for (auto &&i : oks)
-        cout << (i ? ok : nok) << endl;
+        cout << (i ? OK : NOK) << endl;
 
     // free all allocated vars
     free(requestQuantities);
-    free(remainResourcesAfterRequest);
     free(currentAvailableQuantities);
-    free(newNeedAfterRequest);
     for (auto &it : maxRequestTable)
         free(it.second);
 
