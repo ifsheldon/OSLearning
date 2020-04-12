@@ -96,6 +96,7 @@ bool isSafe(const int *currentAvailableResources, const int *request, int pid, i
     return safe;
 }
 
+//TODO: do more tests other than the simple Sample.in
 int main()
 {
     static string OK = "OK";
