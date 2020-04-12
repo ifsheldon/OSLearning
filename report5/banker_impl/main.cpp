@@ -9,9 +9,77 @@
 using namespace std;
 using namespace __gnu_cxx;
 
-bool isSafe(const int *remainResources, const int *newNeed, int len, int pid, const hash_map<int, int *> &need)
+bool isSafe(const int *remainResources, int resourcesTypes, const hash_map<int, int *> &needTable,
+            const hash_map<int, int *> &allocationTable)
 {
-    return false;
+    int jobNum = needTable.size();
+    bool *finished = (bool *) malloc(sizeof(bool) * jobNum);
+    memset(finished, false, sizeof(bool) * jobNum);
+    int *pids = (int *) malloc(sizeof(int) * jobNum);
+    int *dynamicAvailableResources = (int *) malloc(sizeof(int) * resourcesTypes);
+    memcpy(dynamicAvailableResources, remainResources, sizeof(int) * resourcesTypes);
+    int tmp = 0;
+    for (auto &it:needTable)
+    {
+        pids[tmp] = it.first;
+        tmp++;
+    }
+
+    int finishedJobCount = 0;
+    bool passTest = false;
+    for (int idx = 0; idx < jobNum; idx++)
+    {
+        int pid = pids[idx];
+        int *need = needTable.find(pid)->second;
+        if (finished[idx])
+            continue;
+        else
+        {
+            bool exceedAvailable = false;
+            for (int i = 0; i < resourcesTypes; i++)
+            {
+                if (need[i] > dynamicAvailableResources[i])
+                {
+                    exceedAvailable = true;
+                    break;
+                }
+            }
+            if (exceedAvailable)
+                continue;
+            else
+            {
+                finished[pid] = true;
+                int *allocated = allocationTable.find(pid)->second;
+                for (int i = 0; i < resourcesTypes; i++)
+                    dynamicAvailableResources[i] += allocated[i];
+                finishedJobCount++;
+                idx = -1;
+            }
+        }
+        if (finishedJobCount == jobNum)
+        {
+            passTest = true;
+            break;
+        }
+    }
+
+    free(dynamicAvailableResources);
+    free(pids);
+    free(finished);
+    return passTest;
+}
+
+bool isSafe(const int *remainResources, int *newNeed, int pid, int resourcesTypes, const hash_map<int, int *> &need,
+            const hash_map<int, int *> &allocationTable)
+{
+
+    hash_map<int, int *> newNeedTable;
+    for (auto &it:need)
+    {
+        int id = it.first;
+        newNeedTable[id] = id == pid ? newNeed : it.second;
+    }
+    return isSafe(remainResources, resourcesTypes, newNeedTable, allocationTable);
 }
 
 int main()
@@ -128,7 +196,8 @@ int main()
                 remainResourcesAfterRequest[i] = currentAvailableQuantities[i] - request[i];
                 newNeedAfterRequest[i] = need[i] - request[i];
             }
-            bool safe = isSafe(remainResourcesAfterRequest, newNeedAfterRequest, resourceTypeNum, pid, needTable);
+            bool safe = isSafe(remainResourcesAfterRequest, newNeedAfterRequest, pid, resourceTypeNum, needTable,
+                               allocationTable);
             if (safe)
             {
                 //assign resources
