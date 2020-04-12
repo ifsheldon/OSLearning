@@ -25,11 +25,16 @@ int main()
     cin >> resourceTypeNum;
     size_t quantityArraySize = sizeof(int) * resourceTypeNum;
     int *maxAvailableQuantities = (int *) malloc(quantityArraySize);
+    int *currentAvailableQuantities = (int *) malloc(quantityArraySize);
     for (int i = 0; i < resourceTypeNum; i++)
+    {
         cin >> maxAvailableQuantities[i];
+        currentAvailableQuantities[i] = maxAvailableQuantities[i];
+    }
     string line;
     __gnu_cxx::hash_map<int, int *> maxRequestTable;
     __gnu_cxx::hash_map<int, int *> allocationTable;
+    vector<bool> oks;
     while (getline(cin, line))
     {
         if (line.length() == 0)
@@ -40,32 +45,50 @@ int main()
         ss >> pid >> type;
         if (type == neww)
         {
-
             int *maxRequestQuantities = (int *) malloc(quantityArraySize);
-
             for (int i = 0; i < resourceTypeNum; i++)
                 ss >> maxRequestQuantities[i];
             // also need to check maxAvailableQuantities before adding to hashmap
-            ////////////////
-            maxRequestTable[pid] = maxRequestQuantities;
-            int *allocatedQuantities = (int *) malloc(quantityArraySize);
-            memset(allocatedQuantities, 0, quantityArraySize);
-            allocationTable[pid] = allocatedQuantities;
+            bool exceedMax = false;
+            for (int i = 0; i < resourceTypeNum; i++)
+            {
+                if (maxAvailableQuantities[i] < maxRequestQuantities[i])
+                {
+                    exceedMax = true;
+                    break;
+                }
+            }
+            if (!exceedMax)
+            {
+                maxRequestTable[pid] = maxRequestQuantities;
+                int *allocatedQuantities = (int *) malloc(quantityArraySize);
+                memset(allocatedQuantities, 0, quantityArraySize);
+                allocationTable[pid] = allocatedQuantities;
+            }
+            oks.push_back(!exceedMax);
         } else if (type == request)
         {
             ////////////
+            oks.push_back(true);
         } else if (type == terminate)
         {
-            ////////
+            /////////////////
+            oks.push_back(true);
         } else
         {
             ///error
+            cout << "input error" << endl;
+            exit(-1);
         }
 
-
     }
+    for (auto &&i : oks)
+        cout << (i ? ok : nok) << endl;
+
     free(maxAvailableQuantities);
     maxAvailableQuantities = nullptr;
+    free(currentAvailableQuantities);
+    currentAvailableQuantities = nullptr;
     for (auto &it : maxRequestTable)
     {
         free(it.second);
