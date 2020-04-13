@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <memory.h>
 
-#define DEBUG
+//#define DEBUG
 using namespace std;
 using namespace __gnu_cxx;
 
