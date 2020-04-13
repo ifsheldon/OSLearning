@@ -123,10 +123,11 @@ int main()
     vector<bool> oks;
     int *requestQuantities = (int *) malloc(quantityArraySize);
     string line;
+    getline(cin, line);
     while (getline(cin, line))
     {
         if (line.length() == 0)
-            continue;
+            break;
         istringstream ss(line);
         int pid;
         string type;
@@ -237,8 +238,8 @@ int main()
         }
 
     }
-    for (auto &&i : oks)
-        cout << (i ? OK : NOK) << endl;
+    for (auto &&ok : oks)
+        cout << (ok ? OK : NOK) << endl;
 
     // free all allocated vars
     free(requestQuantities);
