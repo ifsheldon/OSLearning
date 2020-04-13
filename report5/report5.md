@@ -34,3 +34,9 @@ Initially, Unix just pretended deadlocks never happen and ignored them because d
 
 ## Q6. What data structures you use in your implementation（of Banker's algorithm）? Where and why you use them? Are they optimal for your purpose?
 
+|     Data Structure      |                       Where                        |                             Why                              |                         Is optimal?                          |
+| :---------------------: | :------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| Dynamic Array(`Vector`) |         Storing the result(`bool` values)          |               can hold various amounts of data               | No, a linked list(`forward_list`) should be better because of (very little) less overhead |
+| Hash Table(`hash_map`)  | Storing `need`, `allocated` and `request` matrices | dynamic space; suitable for sparse matrices; small overhead  | In most cases, yes, but not in the case where `pid`s are continuous integers, which means the 3 matrices are dense. |
+|          Array          |              Iterating all processes               | When checking safety, processes are intensively accessed. Thus, accessing them via hash tables will bring more overhead, so an array is used. |                             Yes                              |
+

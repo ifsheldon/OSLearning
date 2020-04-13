@@ -3,4 +3,4 @@ project(banker_impl)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(banker_impl main.cpp)
+add_executable(banker_impl Banker.cpp)
