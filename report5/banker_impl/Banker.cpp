@@ -1,16 +1,16 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <hash_map>
+#include <unordered_map>
 #include <cstdlib>
 #include <memory.h>
+#include <vector>
 
-//#define DEBUG
+#define DEBUG
 using namespace std;
-using namespace __gnu_cxx;
 
-bool isSafe(int *remainResources, int resourcesTypes, const hash_map<int, int *> &needTable,
-            const hash_map<int, int *> &allocationTable)
+bool isSafe(int *remainResources, int resourcesTypes, const unordered_map<int, int *> &needTable,
+            const unordered_map<int, int *> &allocationTable)
 {
     int jobNum = needTable.size();
     bool *finished = (bool *) malloc(sizeof(bool) * jobNum);
@@ -66,12 +66,12 @@ bool isSafe(int *remainResources, int resourcesTypes, const hash_map<int, int *>
 }
 
 bool isSafe(const int *currentAvailableResources, const int *request, int pid, int resourcesTypes,
-            const hash_map<int, int *> &needTable,
-            const hash_map<int, int *> &allocationTable)
+            const unordered_map<int, int *> &needTable,
+            const unordered_map<int, int *> &allocationTable)
 {
 
-    hash_map<int, int *> newNeedTable;
-    hash_map<int, int *> newAllocationTable;
+    unordered_map<int, int *> newNeedTable;
+    unordered_map<int, int *> newAllocationTable;
     int *need = needTable.find(pid)->second;
     int *newNeed = (int *) malloc(sizeof(int) * resourcesTypes);
     int *remainResources = (int *) malloc(sizeof(int) * resourcesTypes);
@@ -117,9 +117,9 @@ int main()
     for (int i = 0; i < resourceTypeNum; i++)
         cin >> currentAvailableQuantities[i];
 
-    hash_map<int, int *> maxRequestTable;
-    hash_map<int, int *> allocationTable;
-    hash_map<int, int *> needTable;
+    unordered_map<int, int *> maxRequestTable;
+    unordered_map<int, int *> allocationTable;
+    unordered_map<int, int *> needTable;
     vector<bool> oks;
     int *requestQuantities = (int *) malloc(quantityArraySize);
     string line;
