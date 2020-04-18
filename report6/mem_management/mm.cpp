@@ -7,12 +7,6 @@ using namespace std;
 #define MIN_SLICE 10 //内碎片最大大小
 #define DEFAULT_MEM_SIZE 1024  //总内存大小
 #define DEFAULT_MEM_START 0  //内存开始分配时的起始地址
-#define RESIZE_MEM 1
-#define SET_ALGO 2
-#define CREATE_PROCESS 3
-#define KILL_PROCESS 4
-#define DISPLAY_MEM_USAGE 5
-#define EXIT 233
 
 typedef pair<int, string> My_algo;
 
@@ -54,13 +48,22 @@ void display_mem_usage(); //显示内存情况
 void kill_process(); //杀死对应进程并释放其空间与结构体
 void Usemy_algo(int id); //使用对应的分配算法
 
+int selectedAlgo = 0;
+
+#define RESIZE_MEM 1
+#define SET_ALGO 2
+#define CREATE_PROCESS 3
+#define KILL_PROCESS 4
+#define DISPLAY_MEM_USAGE 5
+#define EXIT 233
+
 //主函数
 int main()
 {
     int op;
     pid = 0;
     free_block_head = init_free_block(mem_size); //初始化一个可以使用的内存块，类似与操作系统可用的总存储空间
-    int alg = 0;
+
     for (;;)
     {
         sleep(1);
@@ -78,10 +81,10 @@ int main()
             {
                 printf("Choose an algorithm\n");
                 printf("1: Best Fit\n 2: Worst Fit\n 3: First Fit\n 4: Buddy System\n");
-                int result = scanf("%d", &alg);
+                int result = scanf("%d", &selectedAlgo);
                 if (result != 1)
                     printf("Input Error, Try again\n");
-                if (alg < 1 || alg > 4)
+                if (selectedAlgo < 1 || selectedAlgo > 4)
                     printf("Invaild input, Try again\n");
                 break;
             }
@@ -110,6 +113,18 @@ int main()
                 break;
         }
     }
+}
+
+allocated_block *find_tail()
+{
+    auto current = allocated_block_head;
+    allocated_block *pre = nullptr;
+    while (current != nullptr)
+    {
+        pre = current;
+        current = current->next;
+    }
+    return pre;
 }
 
 allocated_block *find_process(int id)
@@ -167,8 +182,164 @@ void set_mem_size()
     }
 }
 
+#define BEST_FIT 1
+#define WORST_FIT 2
+#define FIRST_FIT 3
+#define BUDDY 4
+
+inline int bestFit(allocated_block *ab)
+{
+    int absize = ab->size;
+    free_block *bestFitBlock = nullptr;
+    free_block *pre = nullptr;
+    int minDiff = INT_MAX;
+    for (auto current = free_block_head; current->next != nullptr; pre = current, current = current->next)
+    {
+        if (current->size == absize)
+        {
+            bestFitBlock = current;
+            minDiff = 0;
+            break;
+        } else if (current->size > absize)
+        {
+            int diff = current->size - absize;
+            if (diff < minDiff)
+            {
+                minDiff = diff;
+                bestFitBlock = current;
+            }
+        }
+    }
+    if (bestFitBlock == nullptr)// cannot find a feasible block
+    {
+        return -1;
+    }
+    if (minDiff == 0)
+    {
+        pre->next = bestFitBlock->next;
+        ab->start_addr = bestFitBlock->start_addr;
+        free(bestFitBlock);
+    } else
+    {
+        ab->start_addr = bestFitBlock->start_addr;
+        bestFitBlock->start_addr += absize;
+        bestFitBlock->size -= absize;
+    }
+    return 0;
+}
+
+inline int worstFit(allocated_block *ab)
+{
+    int absize = ab->size;
+    free_block *worstFitBlock = nullptr;
+    free_block *pre = nullptr;
+    int maxDiff = -1;
+    for (auto current = free_block_head; current->next != nullptr; pre = current, current = current->next)
+    {
+        if (current->size >= absize)
+        {
+            int diff = current->size - absize;
+            if (diff > maxDiff)
+            {
+                maxDiff = diff;
+                worstFitBlock = current;
+            }
+        }
+    }
+    if (worstFitBlock == nullptr)// cannot find a feasible block
+    {
+        return -1;
+    }
+    if (maxDiff == 0)
+    {
+        pre->next = worstFitBlock->next;
+        ab->start_addr = worstFitBlock->start_addr;
+        free(worstFitBlock);
+    } else
+    {
+        ab->start_addr = worstFitBlock->start_addr;
+        worstFitBlock->start_addr += absize;
+        worstFitBlock->size -= absize;
+    }
+    return 0;
+}
+
+inline int firstFit(allocated_block *ab)
+{
+    int absize = ab->size;
+    free_block *firstFitBlock = nullptr;
+    free_block *pre = nullptr;
+    for (auto current = free_block_head; current->next != nullptr; pre = current, current = current->next)
+    {
+        if (current->size >= absize)
+        {
+            firstFitBlock = current;
+            break;
+        }
+    }
+    if (firstFitBlock == nullptr)// cannot find a feasible block
+    {
+        return -1;
+    }
+    if (firstFitBlock->size - absize == 0)
+    {
+        pre->next = firstFitBlock->next;
+        ab->start_addr = firstFitBlock->start_addr;
+        free(firstFitBlock);
+    } else
+    {
+        ab->start_addr = firstFitBlock->start_addr;
+        firstFitBlock->start_addr += absize;
+        firstFitBlock->size -= absize;
+    }
+    return 0;
+}
+
+inline int buddy(allocated_block *ab)
+{
+    printf("NOT IMPLEMENTED");
+    return -1;
+}
+
 int allocate_mem(allocated_block *ab)
 { //为块分配内存，真正的操作系统会在这里进行置换等操作
+    if (allocated_block_head == nullptr)
+    {
+        allocated_block_head = ab;
+        ab->start_addr = DEFAULT_MEM_START;
+        free_block_head->start_addr += ab->size; //in case of non-zero DEFAULT_MEM_START
+        free_block_head->size -= ab->size;
+        return 0;
+    } else
+    {
+        int result = 0;
+        switch (selectedAlgo)
+        {
+            case BEST_FIT:
+                result = bestFit(ab);
+                break;
+            case WORST_FIT:
+                result = worstFit(ab);
+                break;
+            case FIRST_FIT:
+                result = firstFit(ab);
+                break;
+            case BUDDY:
+                result = buddy(ab);
+                break;
+            default:
+                return -1;
+        }
+        if (result < 0)
+        {
+            printf("cannot find a feasible free block\n");
+        } else
+        {
+            auto allocatedTail = find_tail();
+            allocatedTail->next = ab;///////////////////// need sorting?
+        }
+        return result;
+    }
 }
 
 int create_new_process()
@@ -194,11 +365,13 @@ int create_new_process()
     }
     // input is valid, then
     if (allowResizeMem) allowResizeMem = false;
+    pid++;
     allocated_block *ab = (allocated_block *) malloc(sizeof(allocated_block));
     ab->size = mem_sz;
+    ab->pid = pid;
+    ab->next = nullptr;
+    ab->data = nullptr;
     allocate_mem(ab);
-
-
 }
 
 void swap(int *p, int *q)
