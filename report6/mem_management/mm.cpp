@@ -7,11 +7,17 @@ using namespace std;
 #define MIN_SLICE 10 //内碎片最大大小
 #define DEFAULT_MEM_SIZE 1024  //总内存大小
 #define DEFAULT_MEM_START 0  //内存开始分配时的起始地址
+#define RESIZE_MEM 1
+#define SET_ALGO 2
+#define CREATE_PROCESS 3
+#define KILL_PROCESS 4
+#define DISPLAY_MEM_USAGE 5
+#define EXIT 233
 
 typedef pair<int, string> My_algo;
 
 int mem_size = DEFAULT_MEM_SIZE;
-bool flag = false; //当内存以及被分配了之后，不允许更改总内存大小的flag
+bool allowResizeMem = true; //当内存已经被分配了之后，不允许更改总内存大小的flag
 static int pid = 0;
 My_algo algo[123];
 
@@ -36,7 +42,7 @@ allocated_block *allocated_block_head = nullptr; //分配块首指针
 
 allocated_block *find_process(int id); //寻找pid为id的分配块
 free_block *init_free_block(int mem_size); //空闲块初始化
-void display_menu(); //显示选项菜单
+inline void display_menu(); //显示选项菜单
 void set_mem_size(); //设置内存大小
 int allocate_mem(allocated_block *ab); //为制定块分配内存
 void rearrange(); // 对块进行重新分配
@@ -54,6 +60,7 @@ int main()
     int op;
     pid = 0;
     free_block_head = init_free_block(mem_size); //初始化一个可以使用的内存块，类似与操作系统可用的总存储空间
+    int alg = 0;
     for (;;)
     {
         sleep(1);
@@ -62,35 +69,38 @@ int main()
         scanf("%d", &op);
         switch (op)
         {
-            case 1:
+            case RESIZE_MEM:
             {
                 set_mem_size();
                 break;
             }
-            case 2:
+            case SET_ALGO:
             {
                 printf("Choose an algorithm\n");
                 printf("1: Best Fit\n 2: Worst Fit\n 3: First Fit\n 4: Buddy System\n");
-                int alg;
-                scanf("%d", &alg);
+                int result = scanf("%d", &alg);
+                if (result != 1)
+                    printf("Input Error, Try again\n");
+                if (alg < 1 || alg > 4)
+                    printf("Invaild input, Try again\n");
                 break;
             }
-            case 3:
+            case CREATE_PROCESS:
             {
                 create_new_process();
                 break;
             }
-            case 4:
+            case KILL_PROCESS:
             {
                 kill_process();
                 break;
             }
-            case 5:
+            case DISPLAY_MEM_USAGE:
             {
                 display_mem_usage();
                 break;
             }
-            case 233:
+            case EXIT:
             {
                 puts("bye....");
                 sleep(1);
@@ -122,7 +132,7 @@ free_block *init_free_block(int mem_size)
     return p;
 }
 
-void display_menu()
+inline void display_menu()
 {
     puts("\n\n******************menu*******************");
     printf("1) Set memory size (default = %d)\n", DEFAULT_MEM_SIZE);
@@ -135,6 +145,26 @@ void display_menu()
 
 void set_mem_size()
 { //更改最大内存大小
+    if (allowResizeMem)
+    {
+        while (true)
+        {
+            printf("Enter new mem size(positive integer)\n");
+            int memNewSize;
+            while (scanf("%d", &memNewSize) != 1)
+                printf("Input Error, Try again");
+            if (memNewSize <= 0)
+                printf("Enter a positive integer plz, try again\n");
+            else
+            {
+                free_block_head->size = memNewSize;
+                break;
+            }
+        }
+    } else
+    {
+        printf("Mem allocated, not allow resizing\n");
+    }
 }
 
 int allocate_mem(allocated_block *ab)
@@ -145,8 +175,30 @@ int create_new_process()
 { //创建新进程
     int mem_sz = 0;
     printf("Please input memory size\n");
-    scanf("%d", &mem_sz);
+    int result = scanf("%d", &mem_sz);
     // Write your code here
+    if (result != 1)
+    {
+        printf("Input Error, Try again\n");
+        return -1;
+    }
+    if (mem_sz <= 0)
+    {
+        printf("Invalid Input, Try again\n");
+        return -1;
+    }
+    if (mem_sz > mem_size)
+    {
+        printf("Exceed Mem Size(%d)", mem_size);
+        return -1;
+    }
+    // input is valid, then
+    if (allowResizeMem) allowResizeMem = false;
+    allocated_block *ab = (allocated_block *) malloc(sizeof(allocated_block));
+    ab->size = mem_sz;
+    allocate_mem(ab);
+
+
 }
 
 void swap(int *p, int *q)
@@ -158,23 +210,23 @@ void swap(int *p, int *q)
 
 void rearrange()
 { //将块按照地址大小进行排序
-    free_block *tmp, *tmpx;
+    free_block *current, *nextNode;
     puts("Rearrange begins...");
     puts("Rearrange by address...");
-    tmp = free_block_head;
-    while (tmp != nullptr)
+    current = free_block_head;
+    while (current != nullptr)
     {
-        tmpx = tmp->next;
-        while (tmpx != nullptr)
+        nextNode = current->next;
+        while (nextNode != nullptr)
         {
-            if (tmpx->start_addr < tmp->start_addr)
+            if (nextNode->start_addr < current->start_addr)
             {
-                swap(&tmp->start_addr, &tmpx->start_addr);
-                swap(&tmp->size, &tmpx->size);
+                swap(&current->start_addr, &nextNode->start_addr);
+                swap(&current->size, &nextNode->size);
             }
-            tmpx = tmpx->next;
+            nextNode = nextNode->next;
         }
-        tmp = tmp->next;
+        current = current->next;
     }
     usleep(500);
     puts("Rearrange Done.");
