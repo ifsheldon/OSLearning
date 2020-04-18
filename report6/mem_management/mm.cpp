@@ -57,6 +57,7 @@ int selectedAlgo = 0;
 #define DISPLAY_MEM_USAGE 5
 #define EXIT 233
 
+//TODO: check when allocated all space
 //主函数
 int main()
 {
@@ -413,6 +414,29 @@ void rearrange()
 
 int free_mem(allocated_block *ab)
 { //释放某一块的内存
+    bool foundContinuousBlock = false;
+    for (auto current = free_block_head; current->next != nullptr; current = current->next)
+    {
+        int endAddress = current->start_addr + current->size;
+        if (endAddress == ab->start_addr)
+        {
+            foundContinuousBlock = true;
+            current->size += ab->size;
+            break;
+        }
+    }
+    if (!foundContinuousBlock)
+    {
+        free_block *freeBlock = (free_block *) malloc(sizeof(free_block));
+        freeBlock->size = ab->size;
+        freeBlock->start_addr = ab->start_addr;
+        freeBlock->next = nullptr;
+        auto tail = free_block_head;
+        for (; tail->next != nullptr; tail = tail->next);
+        tail->next = freeBlock;
+        rearrange();
+    }
+    return 0;
 }
 
 int dispose(allocated_block *fab)
