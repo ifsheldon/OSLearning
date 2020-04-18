@@ -403,10 +403,16 @@ int free_mem(allocated_block *ab)
         freeBlock->size = ab->size;
         freeBlock->start_addr = ab->start_addr;
         freeBlock->next = nullptr;
-        auto tail = free_block_head;
-        for (; tail->next != nullptr; tail = tail->next);
-        tail->next = freeBlock;
-        rearrange();
+        if (free_block_head == nullptr)
+        {
+            free_block_head = freeBlock;
+        } else
+        {
+            auto tail = free_block_head;
+            for (; tail->next != nullptr; tail = tail->next);
+            tail->next = freeBlock;
+            rearrange();
+        }
     }
     return 0;
 }
