@@ -3,17 +3,17 @@
 
 using namespace std;
 
-#define PROCESS_NAME_LEN 32 //进程名最大长度
-#define MIN_SLICE 10 //内碎片最大大小
+//#define PROCESS_NAME_LEN 32 //进程名最大长度
+//#define MIN_SLICE 10 //内碎片最大大小
 #define DEFAULT_MEM_SIZE 1024  //总内存大小
 #define DEFAULT_MEM_START 0  //内存开始分配时的起始地址
 
-typedef pair<int, string> My_algo;
+//typedef pair<int, string> My_algo;
 
 int mem_size = DEFAULT_MEM_SIZE;
 bool allowResizeMem = true; //当内存已经被分配了之后，不允许更改总内存大小的flag
 static int pid = 0;
-My_algo algo[123];
+//My_algo algo[123];
 
 struct free_block
 {    //空闲数据块
@@ -46,7 +46,7 @@ void swap(int *p, int *q); //交换地址
 int dispose(allocated_block *ab); //释放分配块结构体
 void display_mem_usage(); //显示内存情况
 void kill_process(); //杀死对应进程并释放其空间与结构体
-void Usemy_algo(int id); //使用对应的分配算法
+//void Usemy_algo(int id); //使用对应的分配算法
 
 int selectedAlgo = 0;
 
@@ -65,7 +65,7 @@ int main()
     pid = 0;
     free_block_head = init_free_block(mem_size); //初始化一个可以使用的内存块，类似与操作系统可用的总存储空间
 
-    for (;;)
+    while(true)
     {
         sleep(1);
         display_menu();
