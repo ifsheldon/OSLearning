@@ -312,7 +312,7 @@ int allocate_mem(allocated_block *ab)
         return 0;
     } else
     {
-        int result = 0;
+        int result;
         switch (selectedAlgo)
         {
             case BEST_FIT:
