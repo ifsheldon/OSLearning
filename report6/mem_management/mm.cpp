@@ -115,7 +115,7 @@ int main()
     }
 }
 
-allocated_block *find_tail()
+inline allocated_block *find_allocated_tail()
 {
     auto current = allocated_block_head;
     allocated_block *pre = nullptr;
@@ -340,7 +340,7 @@ int allocate_mem(allocated_block *ab)
             printf("cannot find a feasible free block\n");
         } else
         {
-            auto allocatedTail = find_tail();
+            auto allocatedTail = find_allocated_tail();
             allocatedTail->next = ab;///////////////////// need sorting?
         }
         return result;
