@@ -81,13 +81,13 @@ allocated_block *find_process(int id){ //循环遍历分配块链表，寻找pid
 free_block *init_free_block(int mem_size){ //初始化空闲块，这里的mem_size表示允许的最大虚拟内存大小
 	free_block *p;
 	p = (free_block *)malloc(sizeof(free_block));
-	if (p == NULL){
+	if (p == nullptr){
 		puts("No memory left");
-		return NULL;
+		return nullptr;
 	}
 	p->size = mem_size;
 	p->start_addr = DEFAULT_MEM_START;
-	p->next = NULL;
+	p->next = nullptr;
 	return p;
 }
 
@@ -118,7 +118,6 @@ void swap(int *p, int *q){
 	int tmp = *p;
 	*p = *q;
 	*q = tmp;
-	return;
 }
 
 void rearrange(){ //将块按照地址大小进行排序
@@ -126,9 +125,9 @@ void rearrange(){ //将块按照地址大小进行排序
 	puts("Rearrange begins...");
 	puts("Rearrange by address...");
 	tmp = free_block_head;
-	while(tmp != NULL){
+	while(tmp != nullptr){
 		tmpx = tmp->next;
-		while (tmpx != NULL){
+		while (tmpx != nullptr){
 			if (tmpx->start_addr < tmp->start_addr){
 				swap(&tmp->start_addr, &tmpx->start_addr);
 				swap(&tmp->size, &tmpx->size);
@@ -166,7 +165,7 @@ void display_mem_usage(){
 	puts("*********************Free Memory*********************");
 	printf("%20s %20s\n", "start_addr", "size");
 	int cnt = 0;
-	while (fb != NULL){
+	while (fb != nullptr){
 		cnt++;
 		printf("%20d %20d\n", fb->start_addr, fb->size);
 		fb = fb->next;
@@ -177,14 +176,13 @@ void display_mem_usage(){
 	puts("*******************Used Memory*********************");
 	printf("%10s %10s %20s\n", "PID", "start_addr", "size");
 	cnt = 0;
-	while (ab != NULL){
+	while (ab != nullptr){
 		cnt++;
 		printf("%10d %10d %20d\n", ab->pid, ab->start_addr, ab->size);
 		ab = ab->next;
 	}
 	if (!cnt) puts("No allocated block");
 	else printf("Totaly %d allocated blocks\n", cnt);
-	return;
 }
 
 void kill_process(){ //杀死某个进程
@@ -193,7 +191,7 @@ void kill_process(){ //杀死某个进程
 	puts("Please input the pid of Killed process");
 	scanf("%d", &pid);
 	ab = find_process(pid);
-	if (ab != NULL){
+	if (ab != nullptr){
 		free_mem(ab);
 		dispose(ab);
 	}
