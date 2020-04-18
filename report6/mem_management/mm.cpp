@@ -129,7 +129,12 @@ allocated_block *find_tail()
 
 allocated_block *find_process(int id)
 { //循环遍历分配块链表，寻找pid=id的进程所对应的块
-
+    for (auto current = allocated_block_head; current->next != nullptr; current = current->next)
+    {
+        if (current->pid == id)
+            return current;
+    }
+    return nullptr;
 }
 
 free_block *init_free_block(int mem_size)
