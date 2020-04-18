@@ -371,7 +371,7 @@ int create_new_process()
     ab->pid = pid;
     ab->next = nullptr;
     ab->data = nullptr;
-    allocate_mem(ab);
+    return allocate_mem(ab);
 }
 
 void swap(int *p, int *q)
