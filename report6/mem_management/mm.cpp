@@ -65,7 +65,7 @@ int main()
     pid = 0;
     free_block_head = init_free_block(mem_size); //初始化一个可以使用的内存块，类似与操作系统可用的总存储空间
 
-    while(true)
+    while (true)
     {
         sleep(1);
         display_menu();
@@ -193,18 +193,16 @@ void set_mem_size()
 #define FIRST_FIT 3
 #define BUDDY 4
 
-inline int bestFit(allocated_block *ab)
+inline free_block *bestFit(const allocated_block *ab)
 {
     int absize = ab->size;
     free_block *bestFitBlock = nullptr;
-    free_block *pre = nullptr;
     int minDiff = INT_MAX;
-    for (auto current = free_block_head; current->next != nullptr; pre = current, current = current->next)
+    for (auto current = free_block_head; current->next != nullptr; current = current->next)
     {
         if (current->size == absize)
         {
             bestFitBlock = current;
-            minDiff = 0;
             break;
         } else if (current->size > absize)
         {
@@ -216,31 +214,15 @@ inline int bestFit(allocated_block *ab)
             }
         }
     }
-    if (bestFitBlock == nullptr)// cannot find a feasible block
-    {
-        return -1;
-    }
-    if (minDiff == 0)
-    {
-        pre->next = bestFitBlock->next;
-        ab->start_addr = bestFitBlock->start_addr;
-        free(bestFitBlock);
-    } else
-    {
-        ab->start_addr = bestFitBlock->start_addr;
-        bestFitBlock->start_addr += absize;
-        bestFitBlock->size -= absize;
-    }
-    return 0;
+    return bestFitBlock;
 }
 
-inline int worstFit(allocated_block *ab)
+inline free_block *worstFit(const allocated_block *ab)
 {
     int absize = ab->size;
     free_block *worstFitBlock = nullptr;
-    free_block *pre = nullptr;
     int maxDiff = -1;
-    for (auto current = free_block_head; current->next != nullptr; pre = current, current = current->next)
+    for (auto current = free_block_head; current->next != nullptr; current = current->next)
     {
         if (current->size >= absize)
         {
@@ -252,30 +234,14 @@ inline int worstFit(allocated_block *ab)
             }
         }
     }
-    if (worstFitBlock == nullptr)// cannot find a feasible block
-    {
-        return -1;
-    }
-    if (maxDiff == 0)
-    {
-        pre->next = worstFitBlock->next;
-        ab->start_addr = worstFitBlock->start_addr;
-        free(worstFitBlock);
-    } else
-    {
-        ab->start_addr = worstFitBlock->start_addr;
-        worstFitBlock->start_addr += absize;
-        worstFitBlock->size -= absize;
-    }
-    return 0;
+    return worstFitBlock;
 }
 
-inline int firstFit(allocated_block *ab)
+inline free_block *firstFit(const allocated_block *ab)
 {
     int absize = ab->size;
     free_block *firstFitBlock = nullptr;
-    free_block *pre = nullptr;
-    for (auto current = free_block_head; current->next != nullptr; pre = current, current = current->next)
+    for (auto current = free_block_head; current->next != nullptr; current = current->next)
     {
         if (current->size >= absize)
         {
@@ -283,28 +249,30 @@ inline int firstFit(allocated_block *ab)
             break;
         }
     }
-    if (firstFitBlock == nullptr)// cannot find a feasible block
-    {
-        return -1;
-    }
-    if (firstFitBlock->size - absize == 0)
-    {
-        pre->next = firstFitBlock->next;
-        ab->start_addr = firstFitBlock->start_addr;
-        free(firstFitBlock);
-    } else
-    {
-        ab->start_addr = firstFitBlock->start_addr;
-        firstFitBlock->start_addr += absize;
-        firstFitBlock->size -= absize;
-    }
-    return 0;
+    return firstFitBlock;
 }
 
-inline int buddy(allocated_block *ab)
+inline free_block *buddy(const allocated_block *ab)
 {
     printf("NOT IMPLEMENTED");
-    return -1;
+    return nullptr;
+}
+
+inline free_block *findFeasibleFreeBlock(const allocated_block *ab)
+{
+    switch (selectedAlgo)
+    {
+        case FIRST_FIT:
+            return firstFit(ab);
+        case WORST_FIT:
+            return worstFit(ab);
+        case BEST_FIT:
+            return bestFit(ab);
+        case BUDDY:
+            return buddy(ab);
+        default:
+            return nullptr;
+    }
 }
 
 int allocate_mem(allocated_block *ab)
@@ -318,33 +286,37 @@ int allocate_mem(allocated_block *ab)
         return 0;
     } else
     {
-        int result;
-        switch (selectedAlgo)
-        {
-            case BEST_FIT:
-                result = bestFit(ab);
-                break;
-            case WORST_FIT:
-                result = worstFit(ab);
-                break;
-            case FIRST_FIT:
-                result = firstFit(ab);
-                break;
-            case BUDDY:
-                result = buddy(ab);
-                break;
-            default:
-                return -1;
-        }
-        if (result < 0)
+        free_block *feasibleFreeBlock = findFeasibleFreeBlock(ab);
+        if (feasibleFreeBlock == nullptr)
         {
             printf("cannot find a feasible free block\n");
+            return -1;
         } else
         {
-            auto allocatedTail = find_allocated_tail();
-            allocatedTail->next = ab;///////////////////// need sorting?
+            if (feasibleFreeBlock->size == ab->size)//perfect match
+            {
+                if (feasibleFreeBlock == free_block_head)
+                    free_block_head = free_block_head->next;
+                else
+                {
+                    // find its previous one
+                    free_block *prev = nullptr;
+                    for (auto current = free_block_head;
+                         current->start_addr != feasibleFreeBlock->start_addr; prev = current, current = current->next);
+                    //sew the link
+                    prev->next = feasibleFreeBlock->next;
+                }
+                ab->start_addr = feasibleFreeBlock->start_addr;
+                free(feasibleFreeBlock);
+            } else // not perfect match
+            {
+                ab->start_addr = feasibleFreeBlock->start_addr;
+                feasibleFreeBlock->start_addr += ab->size;
+                feasibleFreeBlock->size -= ab->size;
+            }
+            auto tail = find_allocated_tail();
+            tail->next = ab;
         }
-        return result;
     }
 }
 
