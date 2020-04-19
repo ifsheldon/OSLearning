@@ -323,7 +323,7 @@ int allocate_mem(allocated_block *ab)
                 if (feasibleFreeBlock == free_block_head)
                 {
 #ifdef DEBUG
-                    printf("is free head\n");
+                    printf("free head\n");
 #endif
                     free_block_head = free_block_head->next;
                 } else
@@ -370,6 +370,11 @@ int create_new_process()
     if (mem_sz > mem_size)
     {
         printf("Exceed Mem Size(%d)", mem_size);
+        return -1;
+    }
+    if (mem_sz > totalFreeSpace)
+    {
+        printf("Exceed Free Space\n Current Total Empty Space: %d\n", totalFreeSpace);
         return -1;
     }
     // input is valid, then
@@ -538,7 +543,10 @@ void kill_process()
     puts("Please input the pid of Killed process");
     scanf("%d", &pid);
     ab = find_process(pid);
-    if (ab != nullptr)
+    if (ab == nullptr)
+    {
+        printf("cannot find the process with pid %d", pid);
+    } else
     {
         free_mem(ab);
         dispose(ab);
