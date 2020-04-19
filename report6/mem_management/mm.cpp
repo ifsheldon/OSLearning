@@ -12,7 +12,8 @@ using namespace std;
 //typedef pair<int, string> My_algo;
 
 int mem_size = DEFAULT_MEM_SIZE;
-bool allowResizeMem = true; //当内存已经被分配了之后，不允许更改总内存大小的flag
+int totalFreeSpace = mem_size;
+//bool allowResizeMem = true; //当内存已经被分配了之后，不允许更改总内存大小的flag
 static int pid = 0;
 //My_algo algo[123];
 
@@ -172,7 +173,10 @@ inline void display_menu()
 
 void set_mem_size()
 { //更改最大内存大小
-    if (allowResizeMem)
+#ifdef DEBUG
+    printf("total free: %d\n", totalFreeSpace);
+#endif
+    if (totalFreeSpace == mem_size)
     {
         while (true)
         {
@@ -184,8 +188,17 @@ void set_mem_size()
                 printf("Enter a positive integer plz, try again\n");
             else
             {
+                auto node = free_block_head->next;
+                while (node != nullptr)
+                {
+                    auto self = node;
+                    node = node->next;
+                    free(self);
+                }
                 free_block_head->size = memNewSize;
+                free_block_head->next = nullptr;
                 mem_size = memNewSize;
+                totalFreeSpace = mem_size;
                 break;
             }
         }
@@ -286,12 +299,11 @@ int allocate_mem(allocated_block *ab)
         ab->start_addr = DEFAULT_MEM_START;
         free_block_head->start_addr += ab->size; //in case of non-zero DEFAULT_MEM_START
         free_block_head->size -= ab->size;
-        if(free_block_head->size==0)
+        if (free_block_head->size == 0)
         {
             free(free_block_head);
             free_block_head = nullptr;
         }
-        return 0;
     } else
     {
         free_block *feasibleFreeBlock = findFeasibleFreeBlock(ab);
@@ -301,9 +313,6 @@ int allocate_mem(allocated_block *ab)
             return -1;
         } else
         {
-#ifdef DEBUG
-            printf("%d--------%d", feasibleFreeBlock->size, ab->size);
-#endif
             if (feasibleFreeBlock->size == ab->size)//perfect match
             {
 #ifdef DEBUG
@@ -336,6 +345,8 @@ int allocate_mem(allocated_block *ab)
             tail->next = ab;
         }
     }
+    totalFreeSpace -= ab->size;
+    return 0;
 }
 
 int create_new_process()
@@ -360,7 +371,6 @@ int create_new_process()
         return -1;
     }
     // input is valid, then
-    if (allowResizeMem) allowResizeMem = false;
     pid++;
     allocated_block *ab = (allocated_block *) malloc(sizeof(allocated_block));
     ab->size = mem_sz;
@@ -414,6 +424,13 @@ int free_mem(allocated_block *ab)
             current->size += ab->size;
             break;
         }
+        if (current->start_addr == ab->start_addr + ab->size)
+        {
+            foundContinuousBlock = true;
+            current->size += ab->size;
+            current->start_addr -= ab->size;
+            break;
+        }
     }
     if (!foundContinuousBlock)
     {
@@ -441,6 +458,7 @@ int dispose(allocated_block *fab)
     if (fab == allocated_block_head)
     {
         allocated_block_head = allocated_block_head->next;
+        totalFreeSpace += fab->size;
         free(fab);
         return 1;
     }
@@ -452,7 +470,8 @@ int dispose(allocated_block *fab)
         ab = ab->next;
     }
     pre->next = ab->next;
-    free(ab);
+    totalFreeSpace += fab->size;
+    free(fab);
     return 2;
 }
 
