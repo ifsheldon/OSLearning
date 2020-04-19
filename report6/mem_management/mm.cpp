@@ -188,6 +188,7 @@ void set_mem_size()
                 printf("Enter a positive integer plz, try again\n");
             else
             {
+                //dump all free blocks
                 auto node = free_block_head->next;
                 while (node != nullptr)
                 {
@@ -195,6 +196,7 @@ void set_mem_size()
                     node = node->next;
                     free(self);
                 }
+                //reset head
                 free_block_head->size = memNewSize;
                 free_block_head->next = nullptr;
                 mem_size = memNewSize;
@@ -411,6 +413,30 @@ void rearrange()
     puts("Rearrange Done.");
 }
 
+//merge free block segments
+void mergeFreeBlocks()
+{
+    auto node = free_block_head;
+    auto anchor = free_block_head;
+    while (node != nullptr)
+    {
+        auto next = node->next;
+        if (next == nullptr)
+            break;
+        if (next->start_addr == node->start_addr + node->size)
+        {
+            node->size += next->size; //merge
+            //release the segment
+            node->next = next->next;
+            free(next);
+            node = anchor; //rollback to anchor
+        } else
+        {
+            anchor = node;
+            node = next;
+        }
+    }
+}
 
 int free_mem(allocated_block *ab)
 { //释放某一块的内存
@@ -449,6 +475,7 @@ int free_mem(allocated_block *ab)
             rearrange();
         }
     }
+    mergeFreeBlocks();
     return 0;
 }
 
