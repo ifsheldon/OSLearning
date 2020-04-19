@@ -7,6 +7,7 @@ using namespace std;
 //#define MIN_SLICE 10 //内碎片最大大小
 #define DEFAULT_MEM_SIZE 1024  //总内存大小
 #define DEFAULT_MEM_START 0  //内存开始分配时的起始地址
+#define DEBUG
 
 //typedef pair<int, string> My_algo;
 
@@ -48,7 +49,12 @@ void display_mem_usage(); //显示内存情况
 void kill_process(); //杀死对应进程并释放其空间与结构体
 //void Usemy_algo(int id); //使用对应的分配算法
 
-int selectedAlgo = 0;
+#define BEST_FIT 1
+#define WORST_FIT 2
+#define FIRST_FIT 3
+#define BUDDY 4
+
+int selectedAlgo = BEST_FIT;
 
 #define RESIZE_MEM 1
 #define SET_ALGO 2
@@ -80,8 +86,8 @@ int main()
             }
             case SET_ALGO:
             {
-                printf("Choose an algorithm\n");
-                printf("1: Best Fit\n 2: Worst Fit\n 3: First Fit\n 4: Buddy System\n");
+                printf("Choose an algorithm(now = %d)\n", selectedAlgo);
+                printf(" 1: Best Fit\n 2: Worst Fit\n 3: First Fit\n 4: Buddy System\n");
                 int result = scanf("%d", &selectedAlgo);
                 if (result != 1)
                     printf("Input Error, Try again\n");
@@ -130,7 +136,7 @@ inline allocated_block *find_allocated_tail()
 
 allocated_block *find_process(int id)
 { //循环遍历分配块链表，寻找pid=id的进程所对应的块
-    for (auto current = allocated_block_head; current->next != nullptr; current = current->next)
+    for (auto current = allocated_block_head; current != nullptr; current = current->next)
     {
         if (current->pid == id)
             return current;
@@ -156,7 +162,7 @@ free_block *init_free_block(int mem_size)
 inline void display_menu()
 {
     puts("\n\n******************menu*******************");
-    printf("1) Set memory size (default = %d)\n", DEFAULT_MEM_SIZE);
+    printf("1) Set memory size (default = %d, now = %d)\n", DEFAULT_MEM_SIZE, mem_size);
     printf("2) Set memory allocation algorithm\n");
     printf("3) Create a new process\n");
     printf("4) Kill a process\n");
@@ -179,6 +185,7 @@ void set_mem_size()
             else
             {
                 free_block_head->size = memNewSize;
+                mem_size = memNewSize;
                 break;
             }
         }
@@ -188,17 +195,13 @@ void set_mem_size()
     }
 }
 
-#define BEST_FIT 1
-#define WORST_FIT 2
-#define FIRST_FIT 3
-#define BUDDY 4
 
 inline free_block *bestFit(const allocated_block *ab)
 {
     int absize = ab->size;
     free_block *bestFitBlock = nullptr;
     int minDiff = INT_MAX;
-    for (auto current = free_block_head; current->next != nullptr; current = current->next)
+    for (auto current = free_block_head; current != nullptr; current = current->next)
     {
         if (current->size == absize)
         {
@@ -222,7 +225,7 @@ inline free_block *worstFit(const allocated_block *ab)
     int absize = ab->size;
     free_block *worstFitBlock = nullptr;
     int maxDiff = -1;
-    for (auto current = free_block_head; current->next != nullptr; current = current->next)
+    for (auto current = free_block_head; current != nullptr; current = current->next)
     {
         if (current->size >= absize)
         {
@@ -241,7 +244,7 @@ inline free_block *firstFit(const allocated_block *ab)
 {
     int absize = ab->size;
     free_block *firstFitBlock = nullptr;
-    for (auto current = free_block_head; current->next != nullptr; current = current->next)
+    for (auto current = free_block_head; current != nullptr; current = current->next)
     {
         if (current->size >= absize)
         {
@@ -283,6 +286,11 @@ int allocate_mem(allocated_block *ab)
         ab->start_addr = DEFAULT_MEM_START;
         free_block_head->start_addr += ab->size; //in case of non-zero DEFAULT_MEM_START
         free_block_head->size -= ab->size;
+        if(free_block_head->size==0)
+        {
+            free(free_block_head);
+            free_block_head = nullptr;
+        }
         return 0;
     } else
     {
@@ -293,11 +301,21 @@ int allocate_mem(allocated_block *ab)
             return -1;
         } else
         {
+#ifdef DEBUG
+            printf("%d--------%d", feasibleFreeBlock->size, ab->size);
+#endif
             if (feasibleFreeBlock->size == ab->size)//perfect match
             {
+#ifdef DEBUG
+                printf("perfect match\n");
+#endif
                 if (feasibleFreeBlock == free_block_head)
+                {
+#ifdef DEBUG
+                    printf("is free head\n");
+#endif
                     free_block_head = free_block_head->next;
-                else
+                } else
                 {
                     // find its previous one
                     free_block *prev = nullptr;
@@ -387,7 +405,7 @@ void rearrange()
 int free_mem(allocated_block *ab)
 { //释放某一块的内存
     bool foundContinuousBlock = false;
-    for (auto current = free_block_head; current->next != nullptr; current = current->next)
+    for (auto current = free_block_head; current != nullptr; current = current->next)
     {
         int endAddress = current->start_addr + current->size;
         if (endAddress == ab->start_addr)
