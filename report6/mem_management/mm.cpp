@@ -7,7 +7,6 @@ using namespace std;
 //#define MIN_SLICE 10 //内碎片最大大小
 #define DEFAULT_MEM_SIZE 1024  //总内存大小
 #define DEFAULT_MEM_START 0  //内存开始分配时的起始地址
-#define DEBUG
 
 //typedef pair<int, string> My_algo;
 
@@ -64,7 +63,8 @@ int selectedAlgo = BEST_FIT;
 #define DISPLAY_MEM_USAGE 5
 #define EXIT 233
 
-//TODO: check when allocated all space
+//#define DEBUG
+
 //主函数
 int main()
 {
