@@ -416,24 +416,24 @@ void rearrange()
 //merge free block segments
 void mergeFreeBlocks()
 {
-    auto node = free_block_head;
+    auto current = free_block_head;
     auto anchor = free_block_head;
-    while (node != nullptr)
+    while (current != nullptr)
     {
-        auto next = node->next;
+        auto next = current->next;
         if (next == nullptr)
             break;
-        if (next->start_addr == node->start_addr + node->size)
+        if (next->start_addr == current->start_addr + current->size)
         {
-            node->size += next->size; //merge
+            current->size += next->size; //merge
             //release the segment
-            node->next = next->next;
+            current->next = next->next;
             free(next);
-            node = anchor; //rollback to anchor
-        } else
+            current = anchor; //rollback to anchor
+        } else //a gap between current node and the next node
         {
-            anchor = node;
-            node = next;
+            anchor = next;
+            current = next;
         }
     }
 }
