@@ -3,18 +3,11 @@
 
 using namespace std;
 
-//#define PROCESS_NAME_LEN 32 //进程名最大长度
-//#define MIN_SLICE 10 //内碎片最大大小
-#define DEFAULT_MEM_SIZE 1024  //总内存大小
-#define DEFAULT_MEM_START 0  //内存开始分配时的起始地址
-
-//typedef pair<int, string> My_algo;
-
+const int DEFAULT_MEM_START = 0;  //内存开始分配时的起始地址
+const int DEFAULT_MEM_SIZE = 1024;
 int mem_size = DEFAULT_MEM_SIZE;
-int totalFreeSpace = mem_size;
-//bool allowResizeMem = true; //当内存已经被分配了之后，不允许更改总内存大小的flag
-static int pid = 0;
-//My_algo algo[123];
+int totalFreeSpace = mem_size; // record total available space
+static int pidCounter = 0;
 
 struct free_block
 {    //空闲数据块
@@ -36,7 +29,7 @@ free_block *free_block_head; //空闲数据块首指针
 allocated_block *allocated_block_head = nullptr; //分配块首指针
 
 allocated_block *find_process(int id); //寻找pid为id的分配块
-free_block *init_free_block(int mem_size); //空闲块初始化
+free_block *init_free_block(); //空闲块初始化
 inline void display_menu(); //显示选项菜单
 void set_mem_size(); //设置内存大小
 int allocate_mem(allocated_block *ab); //为制定块分配内存
@@ -47,21 +40,20 @@ void swap(int *p, int *q); //交换地址
 int dispose(allocated_block *ab); //释放分配块结构体
 void display_mem_usage(); //显示内存情况
 void kill_process(); //杀死对应进程并释放其空间与结构体
-//void Usemy_algo(int id); //使用对应的分配算法
 
-#define BEST_FIT 1
-#define WORST_FIT 2
-#define FIRST_FIT 3
-#define BUDDY 4
+const int BEST_FIT = 1;
+const int WORST_FIT = 2;
+const int FIRST_FIT = 3;
+const int BUDDY = 4;
 
 int selectedAlgo = BEST_FIT;
 
-#define RESIZE_MEM 1
-#define SET_ALGO 2
-#define CREATE_PROCESS 3
-#define KILL_PROCESS 4
-#define DISPLAY_MEM_USAGE 5
-#define EXIT 233
+const int RESIZE_MEM = 1;
+const int SET_ALGO = 2;
+const int CREATE_PROCESS = 3;
+const int KILL_PROCESS = 4;
+const int DISPLAY_MEM_USAGE = 5;
+const int EXIT = 233;
 
 //#define DEBUG
 
@@ -69,8 +61,8 @@ int selectedAlgo = BEST_FIT;
 int main()
 {
     int op;
-    pid = 0;
-    free_block_head = init_free_block(mem_size); //初始化一个可以使用的内存块，类似与操作系统可用的总存储空间
+    pidCounter = 0;
+    free_block_head = init_free_block(); //初始化一个可以使用的内存块，类似与操作系统可用的总存储空间
 
     while (true)
     {
@@ -145,7 +137,7 @@ allocated_block *find_process(int id)
     return nullptr;
 }
 
-free_block *init_free_block(int mem_size)
+free_block *init_free_block()
 { //初始化空闲块，这里的mem_size表示允许的最大虚拟内存大小
     free_block *p;
     p = (free_block *) malloc(sizeof(free_block));
@@ -213,18 +205,18 @@ void set_mem_size()
 
 inline free_block *bestFit(const allocated_block *ab)
 {
-    int absize = ab->size;
+    int ab_size = ab->size;
     free_block *bestFitBlock = nullptr;
     int minDiff = INT_MAX;
     for (auto current = free_block_head; current != nullptr; current = current->next)
     {
-        if (current->size == absize)
+        if (current->size == ab_size)
         {
             bestFitBlock = current;
             break;
-        } else if (current->size > absize)
+        } else if (current->size > ab_size)
         {
-            int diff = current->size - absize;
+            int diff = current->size - ab_size;
             if (diff < minDiff)
             {
                 minDiff = diff;
@@ -237,14 +229,14 @@ inline free_block *bestFit(const allocated_block *ab)
 
 inline free_block *worstFit(const allocated_block *ab)
 {
-    int absize = ab->size;
+    int ab_size = ab->size;
     free_block *worstFitBlock = nullptr;
     int maxDiff = -1;
     for (auto current = free_block_head; current != nullptr; current = current->next)
     {
-        if (current->size >= absize)
+        if (current->size >= ab_size)
         {
-            int diff = current->size - absize;
+            int diff = current->size - ab_size;
             if (diff > maxDiff)
             {
                 maxDiff = diff;
@@ -257,11 +249,11 @@ inline free_block *worstFit(const allocated_block *ab)
 
 inline free_block *firstFit(const allocated_block *ab)
 {
-    int absize = ab->size;
+    int ab_size = ab->size;
     free_block *firstFitBlock = nullptr;
     for (auto current = free_block_head; current != nullptr; current = current->next)
     {
-        if (current->size >= absize)
+        if (current->size >= ab_size)
         {
             firstFitBlock = current;
             break;
@@ -378,10 +370,10 @@ int create_new_process()
         return -1;
     }
     // input is valid, then
-    pid++;
+    pidCounter++;
     allocated_block *ab = (allocated_block *) malloc(sizeof(allocated_block));
     ab->size = mem_sz;
-    ab->pid = pid;
+    ab->pid = pidCounter;
     ab->next = nullptr;
     ab->data = nullptr;
     return allocate_mem(ab);
@@ -533,7 +525,7 @@ void display_mem_usage()
         ab = ab->next;
     }
     if (!cnt) puts("No allocated block");
-    else printf("Totaly %d allocated blocks\n", cnt);
+    else printf("Totally %d allocated blocks\n", cnt);
 }
 
 void kill_process()
