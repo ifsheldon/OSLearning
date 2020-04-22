@@ -105,6 +105,10 @@ int main()
             }
             case EXIT:
             {
+                for (auto node = free_block_head; node != nullptr; node = node->next)
+                    free(node);
+                for (auto node = allocated_block_head; node != nullptr; node = node->next)
+                    free(node);
                 puts("bye....");
                 sleep(1);
                 return 0;
