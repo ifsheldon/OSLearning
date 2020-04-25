@@ -105,10 +105,20 @@ int main()
             }
             case EXIT:
             {
-                for (auto fb = free_block_head; fb != nullptr; fb = fb->next)
+                auto fb = free_block_head;
+                while (fb != nullptr)
+                {
+                    auto next = fb->next;
                     free(fb);
-                for (auto ab = allocated_block_head; ab != nullptr; ab = ab->next)
+                    fb = next;
+                }
+                auto ab = allocated_block_head;
+                while (ab != nullptr)
+                {
+                    auto next = ab->next;
                     free(ab);
+                    ab = next;
+                }
                 puts("bye....");
                 sleep(1);
                 return 0;
