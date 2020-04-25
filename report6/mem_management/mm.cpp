@@ -105,10 +105,10 @@ int main()
             }
             case EXIT:
             {
-                for (auto node = free_block_head; node != nullptr; node = node->next)
-                    free(node);
-                for (auto node = allocated_block_head; node != nullptr; node = node->next)
-                    free(node);
+                for (auto fb = free_block_head; fb != nullptr; fb = fb->next)
+                    free(fb);
+                for (auto ab = allocated_block_head; ab != nullptr; ab = ab->next)
+                    free(ab);
                 puts("bye....");
                 sleep(1);
                 return 0;
@@ -520,12 +520,12 @@ void display_mem_usage()
     else printf("Totaly %d free blocks\n", cnt);
     puts("");
     puts("*******************Used Memory*********************");
-    printf("%10s %10s %20s\n", "PID", "start_addr", "size");
+    printf("%10s %10s %10s %20s\n", "PID", "process_name", "start_addr", "size");
     cnt = 0;
     while (ab != nullptr)
     {
         cnt++;
-        printf("%10d %10d %20d\n", ab->pid, ab->start_addr, ab->size);
+        printf("%10d process%d %10d %20d\n", ab->pid, ab->pid, ab->start_addr, ab->size);
         ab = ab->next;
     }
     if (!cnt) puts("No allocated block");
