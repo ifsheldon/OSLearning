@@ -21,7 +21,7 @@ inline void printResult(int pageNum, int cacheMiss)
     cout << "Hit ratio = " << setprecision(4) << hitRatio << "%" << endl;
 }
 
-inline void fifo(int *pageSequence, int length, int cacheSize)
+inline void fifo(const int *pageSequence, int length, int cacheSize)
 {
     if (cacheSize == 1)
     {
@@ -66,7 +66,7 @@ struct Node
     Node *next;
 };
 
-inline void lru(int *pageSequence, int length, int cacheSize)
+inline void lru(const int *pageSequence, int length, int cacheSize)
 {
     if (cacheSize == 1)
     {
@@ -123,7 +123,7 @@ inline void lru(int *pageSequence, int length, int cacheSize)
     delete[] nodes;
 }
 
-inline void min(int *pageSequence, int length, int cacheSize)
+inline void min(const int *pageSequence, int length, int cacheSize)
 {
     int *nextOccurIndices = new int[length];
     unordered_map<int, int> prevIndices;
@@ -175,12 +175,12 @@ inline void min(int *pageSequence, int length, int cacheSize)
     delete[] nextOccurIndices;
 }
 
-inline void clock(int *pageSequence, int length, int cacheSize)
+inline void clock(const int *pageSequence, int length, int cacheSize)
 {
 
 }
 
-inline void second_chance(int *pageSequence, int length, int cacheSize)
+inline void second_chance(const int *pageSequence, int length, int cacheSize)
 {
 
 }
