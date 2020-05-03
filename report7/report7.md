@@ -4,7 +4,7 @@
 
 The FIFO page-replacement algorithm simply maintains a fixed-size FIFO queue of pages. When this queue is not full, an allocated page is simply added to the tail of the queue. When the queue is full and a page is newly allocated, the page at the front of the queue will be popped out first, the the new page is appended to the queue. There are two ways to implement the FIFO queue, one to use pointers, the other to use an array to implement a cyclic queue. Either way, the time complexity for popping and appending a page is $O(1)$. And the space complexity is $O(m),\ m\ for\ the\ maximum\ capacity\ of\ the\ queue$.
 
-## Q2. Briefly describe the MIN page-replacement algorithm and analyze its algorithm complexity
+## Q2. Briefly describe the MIN page-replacement algorithm and analyze its algorithm complexity#####COMPLEXITY WRONG
 
 MIN page-replacement algorithm is a static algorithm, which means it has to know all the information before running. The pseudo-code of the algorithm is the following.
 
