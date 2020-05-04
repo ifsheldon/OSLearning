@@ -496,6 +496,7 @@ inline void second_chance(const int *pageSequence, int length, int cacheSize)
             }
         }
     }
+    printResult(length,missCount);
 }
 
 void another_main()
