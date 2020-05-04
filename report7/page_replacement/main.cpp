@@ -76,7 +76,7 @@ inline void lru(const int *pageSequence, int length, int cacheSize)
     Node *nodes = new Node[cacheSize];
     Node *head = nodes;
     Node *tail = nodes + cacheSize - 1;
-    unordered_map<int, Node *> map;
+    unordered_map<int, Node *> cachedPages;
     nodes[0].prev = nullptr;
     nodes[cacheSize - 1].next = nullptr;
     int usedSpace = 0;
@@ -86,12 +86,11 @@ inline void lru(const int *pageSequence, int length, int cacheSize)
         nodes[i].prev = nodes + (i - 1);
         nodes[i].next = nodes + (i + 1);
     }
-    //TODO: need to add code for unfilled list
     for (int i = 0; i < length; i++)
     {
         int page = pageSequence[i];
-        auto found = map.find(page);
-        bool hit = found != map.end();
+        auto found = cachedPages.find(page);
+        bool hit = found != cachedPages.end();
         if (hit)
         {
             Node *node = found->second;
@@ -107,16 +106,26 @@ inline void lru(const int *pageSequence, int length, int cacheSize)
         } else
         {
             missCount++;
-            int tailPageNum = tail->val;
-            map.erase(tailPageNum);
-            tail->prev->next = nullptr;
-            Node *node = tail;
-            tail = tail->prev;
-            node->val = page;
-            node->prev = nullptr;
-            node->next = head;
-            head = node;
-            map[page] = node;
+            if(usedSpace<cacheSize)
+            {
+                Node* node = nodes+usedSpace;
+                node->val = page;
+                cachedPages[page] = node;
+                usedSpace++;
+            }
+            else
+            {
+                int tailPageNum = tail->val;
+                cachedPages.erase(tailPageNum);
+                tail->prev->next = nullptr;
+                Node *node = tail;
+                tail = tail->prev;
+                node->val = page;
+                node->prev = nullptr;
+                node->next = head;
+                head = node;
+                cachedPages[page] = node;
+            }
         }
     }
     printResult(length, missCount);
