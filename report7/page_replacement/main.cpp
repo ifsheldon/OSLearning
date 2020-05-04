@@ -64,7 +64,6 @@ struct Node
     int val;
     Node *prev;
     Node *next;
-    bool valid;
 };
 
 inline void lru(const int *pageSequence, int length, int cacheSize)
