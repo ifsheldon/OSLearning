@@ -49,6 +49,7 @@ public:
             head++;
             head %= maxCapacity;
             items.erase(previous);
+            items.insert(i);
             return previous;
         }
     }
