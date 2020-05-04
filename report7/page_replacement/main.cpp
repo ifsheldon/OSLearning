@@ -78,7 +78,9 @@ inline void lru(const int *pageSequence, int length, int cacheSize)
     Node *tail = nodes + cacheSize - 1;
     unordered_map<int, Node *> cachedPages;
     nodes[0].prev = nullptr;
+    nodes[0].next = nodes + 1;
     nodes[cacheSize - 1].next = nullptr;
+    nodes[cacheSize - 1].prev = nodes + cacheSize - 2;
     int usedSpace = 0;
     int missCount = 0;
     for (int i = 1; i < cacheSize - 1; i++)
@@ -106,14 +108,13 @@ inline void lru(const int *pageSequence, int length, int cacheSize)
         } else
         {
             missCount++;
-            if(usedSpace<cacheSize)
+            if (usedSpace < cacheSize)
             {
-                Node* node = nodes+usedSpace;
+                Node *node = nodes + usedSpace;
                 node->val = page;
                 cachedPages[page] = node;
                 usedSpace++;
-            }
-            else
+            } else
             {
                 int tailPageNum = tail->val;
                 cachedPages.erase(tailPageNum);
@@ -186,7 +187,26 @@ inline void min(const int *pageSequence, int length, int cacheSize)
 
 inline void clock(const int *pageSequence, int length, int cacheSize)
 {
+    if (cacheSize == 1)
+    {
+        fifo(pageSequence, length, cacheSize);
+        return;
+    }
+    unordered_map<int, Node *> cachedPages;
+    Node *nodes = new Node[cacheSize];
+    nodes[0].prev = nullptr;
+    nodes[0].next = nodes + 1;
+    nodes[cacheSize - 1].next = nullptr;
+    nodes[cacheSize - 1].prev = nodes + cacheSize - 2;
+    int usedSpace = 0;
+    int missCount = 0;
+    for (int i = 1; i < cacheSize - 1; i++)
+    {
+        nodes[i].prev = nodes + (i - 1);
+        nodes[i].next = nodes + (i + 1);
+    }
 
+    delete[] nodes;
 }
 
 inline void second_chance(const int *pageSequence, int length, int cacheSize)
