@@ -121,6 +121,7 @@ public:
             map[i] = newNode;
             head = head->next;
             newNode->prev = tail;
+            newNode->val = i;
             newNode->next = nullptr;
             tail->next = newNode;
             tail = newNode;
@@ -185,6 +186,12 @@ public:
     bool contains(int i)
     {
         return map.find(i) != map.end();
+//        for (Node *current = head; current != nullptr; current = current->next)
+//        {
+//            if (current->val == i)
+//                return true;
+//        }
+//        return false;
     }
 
     int size()
@@ -553,6 +560,8 @@ void another_main()
         fifo(integers, LENGTH, 4);
         printSample(integers, LENGTH, 4, LRU);
         lru(integers, LENGTH, 4);
+        printSample(integers, LENGTH, 4, MIN);
+        min(integers, LENGTH, 4);
         printSample(integers, LENGTH, 4, CLOCK);
         clock(integers, LENGTH, 4);
         printSample(integers, LENGTH, 4, SECOND_CHANCE);
