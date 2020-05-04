@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 
-#define DEBUG
+//#define DEBUG
 using namespace std;
 enum Algorithm
 {
@@ -69,11 +69,6 @@ struct Node
 
 inline void lru(const int *pageSequence, int length, int cacheSize)
 {
-    if (cacheSize == 1)
-    {
-        fifo(pageSequence, length, cacheSize);
-        return;
-    }
     Node *nodes = new Node[cacheSize];
     Node *head = nodes;
     Node *tail = nodes + cacheSize - 1;
@@ -188,11 +183,6 @@ inline void min(const int *pageSequence, int length, int cacheSize)
 
 inline void clock(const int *pageSequence, int length, int cacheSize)
 {
-    if (cacheSize == 1)
-    {
-        fifo(pageSequence, length, cacheSize);
-        return;
-    }
     unordered_map<int, Node *> cachedPages;
     Node *nodes = new Node[cacheSize];
     nodes[0].prev = nullptr;
@@ -239,7 +229,6 @@ inline void clock(const int *pageSequence, int length, int cacheSize)
 
 inline void second_chance(const int *pageSequence, int length, int cacheSize)
 {
-
 }
 
 void another_main()
@@ -270,6 +259,11 @@ int main()
     int *pageSequence = new int[numOfPages];
     for (int i = 0; i < numOfPages; i++)
         cin >> pageSequence[i];
+    if (cacheSize == 1)
+    {
+        fifo(pageSequence, numOfPages, cacheSize);
+        return 0;
+    }
     switch (algorithm)
     {
         case FIFO:
