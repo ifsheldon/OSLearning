@@ -229,6 +229,122 @@ inline void clock(const int *pageSequence, int length, int cacheSize)
 
 inline void second_chance(const int *pageSequence, int length, int cacheSize)
 {
+    if (cacheSize == 2)
+    {
+        int fifoCache = -1;
+        int lruCache = -1;
+        int missCount = 0;
+        for (int i = 0; i < length; i++)
+        {
+            int page = pageSequence[i];
+            if (page == fifoCache)
+            {
+                // do nothing
+            } else if (page == lruCache)
+            {
+                int previous = fifoCache;
+                fifoCache = lruCache;
+                lruCache = previous;
+            } else
+            {
+                missCount++;
+                if (fifoCache != -1)
+                    lruCache = fifoCache;
+                fifoCache = page;
+            }
+        }
+        printResult(length, missCount);
+        return;
+    }
+    if (cacheSize == 3)
+    {
+        int fifoCache = -1;
+        int *lruCache = new int[2]{-1, -1};
+        bool zeroUsed = false;
+        int missCount = 0;
+        for (int i = 0; i < length; i++)
+        {
+            int page = pageSequence[i];
+            if (page == fifoCache)
+            {
+                //do nothing
+            } else if (page == lruCache[0])
+            {
+                zeroUsed = true;
+                int tmp = fifoCache;
+                fifoCache = lruCache[0];
+                lruCache[0] = tmp;
+            } else if (page == lruCache[1])
+            {
+                zeroUsed = false;
+                int tmp = fifoCache;
+                fifoCache = lruCache[1];
+                lruCache[1] = tmp;
+            } else
+            {
+                missCount++;
+                if (fifoCache == -1)
+                    fifoCache = page;
+                else//fifo full
+                {
+                    int previous = fifoCache;
+                    fifoCache = page;
+                    //load to lru cache
+                    if (zeroUsed)
+                    {
+                        lruCache[1] = previous;
+                        zeroUsed = false;
+                    } else
+                    {
+                        lruCache[0] = previous;
+                        zeroUsed = true;
+                    }
+                }
+            }
+        }
+        printResult(length, missCount);
+        return;
+    }
+    int fifoSize = cacheSize / 2;
+    int lruSize = cacheSize - fifoSize;
+    Node *fifoQueue = new Node[fifoSize];
+    int usedFifoSpace = 0;
+    int fifoHead = 0;
+    Node *lruQueue = new Node[lruSize];
+    int usedLRUSpace = 0;
+    unordered_map<int, pair<Node *, bool>> cachedPages;
+    int missCount = 0;
+    for (int i = 0; i < length; i++)
+    {
+        int page = pageSequence[i];
+        auto found = cachedPages.find(page);
+        if (found != cachedPages.end())
+        {
+
+        } else
+        {
+            missCount++;
+            if (cachedPages.size() < cacheSize)
+            {
+                if (usedFifoSpace < fifoSize)
+                {
+                    fifoQueue[usedFifoSpace].val = page;
+                    cachedPages[page] = make_pair(fifoQueue + usedFifoSpace, true);
+                    usedFifoSpace++;
+                } else //FIFO full
+                {
+                    //TODO: finish this
+                    int previousPage = fifoQueue[fifoHead].val;
+                    fifoQueue[fifoHead].val = page;
+                    fifoHead++;
+                    fifoHead %= fifoSize;
+
+                }
+            }
+        }
+    }
+    delete[] fifoQueue;
+    delete[] lruQueue;
 }
 
 void another_main()
