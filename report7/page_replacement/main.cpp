@@ -186,12 +186,6 @@ public:
     bool contains(int i)
     {
         return map.find(i) != map.end();
-//        for (Node *current = head; current != nullptr; current = current->next)
-//        {
-//            if (current->val == i)
-//                return true;
-//        }
-//        return false;
     }
 
     int size()
@@ -205,9 +199,6 @@ public:
     }
 };
 
-#ifdef DEBUG
-float result = 0.0f;
-#endif
 
 //TODO: fix the output format. Sample1Output: 05.56%, my output 5.56%
 inline void printResult(int pageNum, int cacheMiss)
@@ -216,9 +207,6 @@ inline void printResult(int pageNum, int cacheMiss)
     float hitRatio = (float) (hit * 100) / (float) pageNum;
     hit = ceil(hitRatio * 100.0f);
     hitRatio = (float) hit / 100.0f;
-#ifdef DEBUG
-    result = hitRatio;
-#endif
     cout << "Hit ratio = " << setprecision(4) << hitRatio << "%" << endl;
 }
 
@@ -363,52 +351,6 @@ inline void clock(const int *pageSequence, int length, int cacheSize)
     delete[] validBits;
 }
 
-//inline void clock(const int *pageSequence, int length, int cacheSize)
-//{
-//    unordered_map<int, Node *> cachedPages;
-//    Node *nodes = new Node[cacheSize];
-//    nodes[0].prev = nullptr;
-//    nodes[0].next = nodes + 1;
-//    nodes[0].valid = false;
-//    nodes[cacheSize - 1].next = nullptr;
-//    nodes[cacheSize - 1].prev = nodes + cacheSize - 2;
-//    nodes[cacheSize - 1].valid = false;
-//    int missCount = 0;
-//    for (int i = 1; i < cacheSize - 1; i++)
-//    {
-//        nodes[i].prev = nodes + (i - 1);
-//        nodes[i].next = nodes + (i + 1);
-//        nodes[i].valid = false;
-//    }
-//    Node *currentPointing = nodes;
-//    for (int i = 0; i < length; i++)
-//    {
-//        int page = pageSequence[i];
-//        auto found = cachedPages.find(page);
-//        if (found != cachedPages.end())//hit
-//        {
-//            found->second->valid = true;
-//        } else
-//        {
-//            missCount++;
-//            if (cachedPages.size() < cacheSize)
-//            {
-//                (nodes + cachedPages.size())->valid = true;
-//                cachedPages[page] = nodes + cachedPages.size();
-//            } else
-//            {
-//                for (; currentPointing->valid; currentPointing->valid = false, currentPointing = currentPointing->next);
-//                currentPointing->valid = true;
-//                int previousPage = currentPointing->val;
-//                cachedPages.erase(previousPage);
-//                cachedPages[page] = currentPointing;
-//            }
-//        }
-//    }
-//    printResult(length, missCount);
-//    delete[] nodes;
-//}
-
 inline void second_chance(const int *pageSequence, int length, int cacheSize)
 {
     if (cacheSize == 2)
@@ -545,7 +487,7 @@ inline void printSample(int *integers, int length, int cacheSize, int method)
     cout << endl;
 }
 
-void another_main()
+void random_sample()
 {
     int integers[LENGTH];
     normal_distribution<float> normal(1000.0, 5.0);
@@ -577,7 +519,7 @@ int main()
 {
     ios::sync_with_stdio(false);
 #ifdef DEBUG
-    another_main();
+    random_sample();
     return 0;
 #endif
     int cacheSize = 0;
