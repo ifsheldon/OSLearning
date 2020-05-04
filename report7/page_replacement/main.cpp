@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 
-//#define DEBUG
+#define DEBUG
 using namespace std;
 enum Algorithm
 {
@@ -40,7 +40,8 @@ public:
         {
             items.insert(i);
             integers[tail] = i;
-            tail++;
+            if (items.size() < maxCapacity)
+                tail++;
             return INT_MIN;
         } else
         {
@@ -110,7 +111,7 @@ public:
         {
             tail->val = i;
             map[i] = tail;
-            tail++;
+            if (map.size() < capacity) tail++;
             return INT_MIN;
         } else
         {
@@ -137,6 +138,10 @@ public:
             {
                 head = head->next;
                 head->prev = nullptr;
+            } else
+            {
+                node->prev->next = node->next;
+                node->next->prev = node->prev;
             }
             tail->next = node;
             node->prev = tail;
@@ -160,6 +165,10 @@ public:
                 {
                     head = head->next;
                     head->prev = nullptr;
+                } else
+                {
+                    node->prev->next = node->next;
+                    node->next->prev = node->prev;
                 }
                 node->prev = tail;
                 node->next = nullptr;
@@ -178,11 +187,20 @@ public:
         return map.find(i) != map.end();
     }
 
+    int size()
+    {
+        return map.size();
+    }
+
     ~LRUQueue()
     {
         delete[] nodes;
     }
 };
+
+#ifdef DEBUG
+float result = 0.0f;
+#endif
 
 //TODO: fix the output format. Sample1Output: 05.56%, my output 5.56%
 inline void printResult(int pageNum, int cacheMiss)
@@ -191,6 +209,9 @@ inline void printResult(int pageNum, int cacheMiss)
     float hitRatio = (float) (hit * 100) / (float) pageNum;
     hit = ceil(hitRatio * 100.0f);
     hitRatio = (float) hit / 100.0f;
+#ifdef DEBUG
+    result = hitRatio;
+#endif
     cout << "Hit ratio = " << setprecision(4) << hitRatio << "%" << endl;
 }
 
@@ -460,28 +481,24 @@ inline void second_chance(const int *pageSequence, int length, int cacheSize)
     //cache size >= 4
     int fifoSize = cacheSize / 2;
     int lruSize = cacheSize - fifoSize;
-    unordered_map<int, bool> cachedPages;
     LRUQueue lruQueue(lruSize);
     FIFOQueue fifoQueue(fifoSize);
     int missCount = 0;
     for (int i = 0; i < length; i++)
     {
         int page = pageSequence[i];
-        auto found = cachedPages.find(page);
-        if (found != cachedPages.end()) // if cached
+        if (lruQueue.contains(page) || fifoQueue.contains(page)) // if cached
         {
-            bool inLRU = !found->second;
-            if (inLRU)
+            if (lruQueue.contains(page))
             {
                 //move to FIFO
-                found->second = false;
                 int poppedPageInFIFO = fifoQueue.append(page);
                 lruQueue.replace(page, poppedPageInFIFO);
             }
         } else
         {
             missCount++;
-            if (cachedPages.size() < cacheSize)
+            if (fifoQueue.size() + lruQueue.size() < cacheSize)
             {
                 if (fifoQueue.size() < fifoSize)
                 {
@@ -491,22 +508,60 @@ inline void second_chance(const int *pageSequence, int length, int cacheSize)
                     int poppedPageInFIFO = fifoQueue.append(page);
                     lruQueue.addNode(poppedPageInFIFO);
                 }
-                cachedPages[page] = true;
             } else //cache full
             {
                 int poppedPageInFIFO = fifoQueue.append(page);
-                int poppedPage = lruQueue.addNode(poppedPageInFIFO);
-                cachedPages[page] = true;
-                cachedPages.erase(poppedPage);
+                lruQueue.addNode(poppedPageInFIFO);
             }
         }
     }
     printResult(length, missCount);
 }
 
+
+#ifdef DEBUG
+
+#include <random>
+
+const int LENGTH = 10000;
+
+inline void printSample(int *integers, int length, int cacheSize, int method, float ratio)
+{
+    cout << cacheSize << endl;
+    cout << method << endl;
+    cout << length << endl;
+    for (int i = 0; i < length; i++)
+        cout << integers[i] << " ";
+    cout << endl;
+    cout << "Result = " << ratio << endl;
+    cout << endl;
+}
+
 void another_main()
 {
+    int integers[LENGTH];
+    normal_distribution<float> normal(1000.0, 5.0);
+    for (int i = 1; i <= 1; i++)
+    {
+        default_random_engine e(i);
+        for (int &integer : integers)
+        {
+            integer += ceil(normal(e));
+            integer %= 1000;
+            integer++;
+        }
+        fifo(integers, LENGTH, 4);
+        printSample(integers, LENGTH, 4, FIFO, result);
+        lru(integers, LENGTH, 4);
+        printSample(integers, LENGTH, 4, LRU, result);
+        clock(integers, LENGTH, 4);
+        printSample(integers, LENGTH, 4, CLOCK, result);
+        second_chance(integers, LENGTH, 4);
+        printSample(integers, LENGTH, 4, SECOND_CHANCE, result);
+    }
 }
+
+#endif
 
 int main()
 {
