@@ -46,6 +46,8 @@ public:
         {
             int previous = integers[head];
             integers[head] = i;
+            head++;
+            head %= maxCapacity;
             items.erase(previous);
             return previous;
         }
@@ -181,6 +183,7 @@ public:
     }
 };
 
+//TODO: fix the output format. Sample1Output: 05.56%, my output 5.56%
 inline void printResult(int pageNum, int cacheMiss)
 {
     int hit = pageNum - cacheMiss;
@@ -497,7 +500,7 @@ inline void second_chance(const int *pageSequence, int length, int cacheSize)
             }
         }
     }
-    printResult(length,missCount);
+    printResult(length, missCount);
 }
 
 void another_main()
