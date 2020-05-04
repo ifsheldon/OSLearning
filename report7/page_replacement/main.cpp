@@ -12,6 +12,174 @@ enum Algorithm
     FIFO, LRU, MIN, CLOCK, SECOND_CHANCE
 };
 
+class FIFOQueue
+{
+private:
+    unordered_set<int> items;
+    int *integers;
+    int maxCapacity;
+    int head;
+    int tail;
+public:
+    explicit FIFOQueue(int size)
+    {
+        this->maxCapacity = size;
+        this->integers = new int[size];
+        this->head = 0;
+        this->tail = 0;
+    }
+
+    ~FIFOQueue()
+    {
+        delete[] integers;
+    }
+
+    int append(int i)
+    {
+        if (items.size() < maxCapacity)
+        {
+            items.insert(i);
+            integers[tail] = i;
+            tail++;
+            return INT_MIN;
+        } else
+        {
+            int previous = integers[head];
+            integers[head] = i;
+            return previous;
+        }
+    }
+
+    bool contains(int i)
+    {
+        return items.find(i) != items.end();
+    }
+
+    int size()
+    {
+        return items.size();
+    }
+};
+
+struct Node
+{
+    int val;
+    Node *prev;
+    Node *next;
+};
+
+class LRUQueue
+{
+private:
+    unordered_map<int, Node *> map;
+    int capacity;
+    Node *nodes;
+    Node *head;
+    Node *tail;
+
+    inline void initLinkedList()
+    {
+        nodes[0].prev = nullptr;
+        nodes[0].next = nodes + 1;
+        nodes[capacity - 1].next = nullptr;
+        nodes[capacity - 1].prev = nodes + (capacity - 2);
+        for (int i = 1; i < capacity - 1; i++)
+        {
+            nodes[i].prev = nodes + (i - 1);
+            nodes[i].next = nodes + (i + 1);
+        }
+    }
+
+public:
+    explicit LRUQueue(int size)
+    {
+        capacity = size;
+        nodes = new Node[size];
+        head = nodes;
+        tail = nodes;
+        initLinkedList();
+    }
+
+    int addNode(int i)
+    {
+        if (map.size() < capacity)
+        {
+            tail->val = i;
+            map[i] = tail;
+            tail++;
+            return INT_MIN;
+        } else
+        {
+            int previous = head->val;
+            map.erase(previous);
+            Node *newNode = head;
+            map[i] = newNode;
+            head = head->next;
+            newNode->prev = tail;
+            newNode->next = nullptr;
+            tail->next = newNode;
+            tail = newNode;
+            return previous == INT_MAX ? INT_MIN : previous;
+        }
+    }
+
+    void hit(int i)
+    {
+        auto found = map.find(i);
+        Node *node = found->second;
+        if (node != tail)
+        {
+            if (node == head)
+            {
+                head = head->next;
+                head->prev = nullptr;
+            }
+            tail->next = node;
+            node->prev = tail;
+            node->next = nullptr;
+            tail = node;
+        }
+    }
+
+    bool replace(int origin, int newOne)
+    {
+        if (contains(origin))
+        {
+            auto found = map.find(origin);
+            Node *node = found->second;
+            node->val = newOne;
+            map.erase(origin);
+            map[newOne] = node;
+            if (node != tail)
+            {
+                if (node == head)
+                {
+                    head = head->next;
+                    head->prev = nullptr;
+                }
+                node->prev = tail;
+                node->next = nullptr;
+                tail->next = node;
+                tail = node;
+            }
+            return true;
+        } else
+        {
+            return false;
+        }
+    }
+
+    bool contains(int i)
+    {
+        return map.find(i) != map.end();
+    }
+
+    ~LRUQueue()
+    {
+        delete[] nodes;
+    }
+};
+
 inline void printResult(int pageNum, int cacheMiss)
 {
     int hit = pageNum - cacheMiss;
@@ -38,94 +206,38 @@ inline void fifo(const int *pageSequence, int length, int cacheSize)
         printResult(length, miss);
         return;
     }
-    unordered_set<int> cachedPages;
-    int *cache = new int[cacheSize]{-1};
-    int head = 0;
+    FIFOQueue fifoQueue(cacheSize);
     int missCount = 0;
     for (int i = 0; i < length; i++)
     {
         int page = pageSequence[i];
-        if (cachedPages.find(page) == cachedPages.end())// cache miss
+        if (!fifoQueue.contains(page))
         {
-            int previous = cache[head];
-            cachedPages.erase(previous);
-            cache[head] = page;
-            head++;
-            head %= cacheSize;
+            fifoQueue.append(page);
             missCount++;
         }
     }
     printResult(length, missCount);
-    delete[] cache;
 }
 
-struct Node
-{
-    int val;
-    Node *prev;
-    Node *next;
-};
 
 inline void lru(const int *pageSequence, int length, int cacheSize)
 {
-    Node *nodes = new Node[cacheSize];
-    Node *head = nodes;
-    Node *tail = nodes + cacheSize - 1;
-    unordered_map<int, Node *> cachedPages;
-    nodes[0].prev = nullptr;
-    nodes[0].next = nodes + 1;
-    nodes[cacheSize - 1].next = nullptr;
-    nodes[cacheSize - 1].prev = nodes + cacheSize - 2;
-    int usedSpace = 0;
+    LRUQueue lruQueue(cacheSize);
     int missCount = 0;
-    for (int i = 1; i < cacheSize - 1; i++)
-    {
-        nodes[i].prev = nodes + (i - 1);
-        nodes[i].next = nodes + (i + 1);
-    }
     for (int i = 0; i < length; i++)
     {
         int page = pageSequence[i];
-        auto found = cachedPages.find(page);
-        bool hit = found != cachedPages.end();
-        if (hit)
+        if (lruQueue.contains(page))
         {
-            Node *node = found->second;
-            if (node != head)
-            {
-                node->prev->next = node->next;
-                if (node->next != nullptr)
-                    node->next->prev = node->prev;
-                node->prev = nullptr;
-                node->next = head;
-                head = node;
-            }
+            lruQueue.hit(page);
         } else
         {
             missCount++;
-            if (usedSpace < cacheSize)
-            {
-                Node *node = nodes + usedSpace;
-                node->val = page;
-                cachedPages[page] = node;
-                usedSpace++;
-            } else
-            {
-                int tailPageNum = tail->val;
-                cachedPages.erase(tailPageNum);
-                tail->prev->next = nullptr;
-                Node *node = tail;
-                tail = tail->prev;
-                node->val = page;
-                node->prev = nullptr;
-                node->next = head;
-                head = node;
-                cachedPages[page] = node;
-            }
+            lruQueue.addNode(page);
         }
     }
     printResult(length, missCount);
-    delete[] nodes;
 }
 
 inline void min(const int *pageSequence, int length, int cacheSize)
@@ -340,46 +452,50 @@ inline void second_chance(const int *pageSequence, int length, int cacheSize)
         printResult(length, missCount);
         return;
     }
+    //cache size >= 4
     int fifoSize = cacheSize / 2;
     int lruSize = cacheSize - fifoSize;
-    Node *fifoQueue = new Node[fifoSize];
-    int usedFifoSpace = 0;
-    int fifoHead = 0;
-    Node *lruQueue = new Node[lruSize];
-    int usedLRUSpace = 0;
-    unordered_map<int, pair<Node *, bool>> cachedPages;
+    unordered_map<int, bool> cachedPages;
+    LRUQueue lruQueue(lruSize);
+    FIFOQueue fifoQueue(fifoSize);
     int missCount = 0;
     for (int i = 0; i < length; i++)
     {
         int page = pageSequence[i];
         auto found = cachedPages.find(page);
-        if (found != cachedPages.end())
+        if (found != cachedPages.end()) // if cached
         {
-
+            bool inLRU = !found->second;
+            if (inLRU)
+            {
+                //move to FIFO
+                found->second = false;
+                int poppedPageInFIFO = fifoQueue.append(page);
+                lruQueue.replace(page, poppedPageInFIFO);
+            }
         } else
         {
             missCount++;
             if (cachedPages.size() < cacheSize)
             {
-                if (usedFifoSpace < fifoSize)
+                if (fifoQueue.size() < fifoSize)
                 {
-                    fifoQueue[usedFifoSpace].val = page;
-                    cachedPages[page] = make_pair(fifoQueue + usedFifoSpace, true);
-                    usedFifoSpace++;
+                    fifoQueue.append(page);
                 } else //FIFO full
                 {
-                    //TODO: finish this
-                    int previousPage = fifoQueue[fifoHead].val;
-                    fifoQueue[fifoHead].val = page;
-                    fifoHead++;
-                    fifoHead %= fifoSize;
-
+                    int poppedPageInFIFO = fifoQueue.append(page);
+                    lruQueue.addNode(poppedPageInFIFO);
                 }
+                cachedPages[page] = true;
+            } else //cache full
+            {
+                int poppedPageInFIFO = fifoQueue.append(page);
+                int poppedPage = lruQueue.addNode(poppedPageInFIFO);
+                cachedPages[page] = true;
+                cachedPages.erase(poppedPage);
             }
         }
     }
-    delete[] fifoQueue;
-    delete[] lruQueue;
 }
 
 void another_main()
