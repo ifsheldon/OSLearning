@@ -345,6 +345,7 @@ inline void clock(const int *pageSequence, int length, int cacheSize)
             if (cachedPages.size() < cacheSize)
             {
                 validBits[cachedPages.size()] = true;
+                pages[cachedPages.size()] = page;
                 cachedPages[page] = cachedPages.size();
             } else
             {
@@ -353,6 +354,7 @@ inline void clock(const int *pageSequence, int length, int cacheSize)
                 int previousPage = pages[clockArm];
                 cachedPages.erase(previousPage);
                 cachedPages[page] = clockArm;
+                pages[clockArm] = page;
             }
         }
     }
