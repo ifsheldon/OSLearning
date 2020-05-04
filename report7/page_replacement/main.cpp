@@ -123,7 +123,7 @@ public:
             newNode->next = nullptr;
             tail->next = newNode;
             tail = newNode;
-            return previous == INT_MAX ? INT_MIN : previous;
+            return previous;
         }
     }
 
