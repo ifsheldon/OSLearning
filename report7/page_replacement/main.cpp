@@ -46,6 +46,7 @@ public:
         {
             int previous = integers[head];
             integers[head] = i;
+            items.erase(previous);
             return previous;
         }
     }
