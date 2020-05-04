@@ -183,49 +183,85 @@ inline void min(const int *pageSequence, int length, int cacheSize)
 
 inline void clock(const int *pageSequence, int length, int cacheSize)
 {
-    unordered_map<int, Node *> cachedPages;
-    Node *nodes = new Node[cacheSize];
-    nodes[0].prev = nullptr;
-    nodes[0].next = nodes + 1;
-    nodes[0].valid = false;
-    nodes[cacheSize - 1].next = nullptr;
-    nodes[cacheSize - 1].prev = nodes + cacheSize - 2;
-    nodes[cacheSize - 1].valid = false;
+    unordered_map<int, int> cachedPages;
+    int *pages = new int[cacheSize];
+    bool *validBits = new bool[cacheSize];
+    int clockArm = 0;
     int missCount = 0;
-    for (int i = 1; i < cacheSize - 1; i++)
-    {
-        nodes[i].prev = nodes + (i - 1);
-        nodes[i].next = nodes + (i + 1);
-        nodes[i].valid = false;
-    }
-    Node *currentPointing = nodes;
     for (int i = 0; i < length; i++)
     {
         int page = pageSequence[i];
         auto found = cachedPages.find(page);
         if (found != cachedPages.end())//hit
         {
-            found->second->valid = true;
+            validBits[found->second] = true;
         } else
         {
             missCount++;
             if (cachedPages.size() < cacheSize)
             {
-                (nodes + cachedPages.size())->valid = true;
-                cachedPages[page] = nodes + cachedPages.size();
+                validBits[cachedPages.size()] = true;
+                cachedPages[page] = cachedPages.size();
             } else
             {
-                for (; currentPointing->valid; currentPointing->valid = false, currentPointing = currentPointing->next);
-                currentPointing->valid = true;
-                int previousPage = currentPointing->val;
+                for (; validBits[clockArm]; validBits[clockArm] = false, clockArm++, clockArm %= cacheSize);
+                validBits[clockArm] = true;
+                int previousPage = pages[clockArm];
                 cachedPages.erase(previousPage);
-                cachedPages[page] = currentPointing;
+                cachedPages[page] = clockArm;
             }
         }
     }
     printResult(length, missCount);
-    delete[] nodes;
+    delete[] pages;
+    delete[] validBits;
 }
+
+//inline void clock(const int *pageSequence, int length, int cacheSize)
+//{
+//    unordered_map<int, Node *> cachedPages;
+//    Node *nodes = new Node[cacheSize];
+//    nodes[0].prev = nullptr;
+//    nodes[0].next = nodes + 1;
+//    nodes[0].valid = false;
+//    nodes[cacheSize - 1].next = nullptr;
+//    nodes[cacheSize - 1].prev = nodes + cacheSize - 2;
+//    nodes[cacheSize - 1].valid = false;
+//    int missCount = 0;
+//    for (int i = 1; i < cacheSize - 1; i++)
+//    {
+//        nodes[i].prev = nodes + (i - 1);
+//        nodes[i].next = nodes + (i + 1);
+//        nodes[i].valid = false;
+//    }
+//    Node *currentPointing = nodes;
+//    for (int i = 0; i < length; i++)
+//    {
+//        int page = pageSequence[i];
+//        auto found = cachedPages.find(page);
+//        if (found != cachedPages.end())//hit
+//        {
+//            found->second->valid = true;
+//        } else
+//        {
+//            missCount++;
+//            if (cachedPages.size() < cacheSize)
+//            {
+//                (nodes + cachedPages.size())->valid = true;
+//                cachedPages[page] = nodes + cachedPages.size();
+//            } else
+//            {
+//                for (; currentPointing->valid; currentPointing->valid = false, currentPointing = currentPointing->next);
+//                currentPointing->valid = true;
+//                int previousPage = currentPointing->val;
+//                cachedPages.erase(previousPage);
+//                cachedPages[page] = currentPointing;
+//            }
+//        }
+//    }
+//    printResult(length, missCount);
+//    delete[] nodes;
+//}
 
 inline void second_chance(const int *pageSequence, int length, int cacheSize)
 {
