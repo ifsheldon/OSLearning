@@ -525,15 +525,14 @@ inline void second_chance(const int *pageSequence, int length, int cacheSize)
 
 const int LENGTH = 10000;
 
-inline void printSample(int *integers, int length, int cacheSize, int method, float ratio)
+inline void printSample(int *integers, int length, int cacheSize, int method)
 {
+    cout << endl;
     cout << cacheSize << endl;
     cout << method << endl;
     cout << length << endl;
     for (int i = 0; i < length; i++)
         cout << integers[i] << " ";
-    cout << endl;
-    cout << "Result = " << ratio << endl;
     cout << endl;
 }
 
@@ -541,7 +540,7 @@ void another_main()
 {
     int integers[LENGTH];
     normal_distribution<float> normal(1000.0, 5.0);
-    for (int i = 1; i <= 1; i++)
+    for (int i = 1; i <= 4; i++)
     {
         default_random_engine e(i);
         for (int &integer : integers)
@@ -550,14 +549,14 @@ void another_main()
             integer %= 1000;
             integer++;
         }
+        printSample(integers, LENGTH, 4, FIFO);
         fifo(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, FIFO, result);
+        printSample(integers, LENGTH, 4, LRU);
         lru(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, LRU, result);
+        printSample(integers, LENGTH, 4, CLOCK);
         clock(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, CLOCK, result);
+        printSample(integers, LENGTH, 4, SECOND_CHANCE);
         second_chance(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, SECOND_CHANCE, result);
     }
 }
 
