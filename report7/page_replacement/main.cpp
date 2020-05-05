@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 
-#define DEBUG
+//#define DEBUG
 using namespace std;
 enum Algorithm
 {
@@ -275,7 +275,7 @@ inline void min(const int *pageSequence, int length, int cacheSize)
             nextOccurIndices[prevOccurIndex] = idx;
         } else
         {
-            nextOccurIndices[idx] = idx;
+            nextOccurIndices[idx] = length;
         }
         prevIndices[page] = idx;
     }
