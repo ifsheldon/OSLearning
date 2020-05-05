@@ -492,7 +492,7 @@ void random_sample()
 {
     int integers[LENGTH];
     normal_distribution<float> normal(1000.0, 5.0);
-    for (int i = 2; i <= 30; i++)
+    for (int i = 1; i <= 30; i++)
     {
         default_random_engine e(i);
         for (int &integer : integers)
@@ -504,13 +504,25 @@ void random_sample()
         printSample(integers, LENGTH, i, FIFO);
         fifo(integers, LENGTH, i);
         printSample(integers, LENGTH, i, LRU);
-        lru(integers, LENGTH, i);
+        if (i == 1)
+            fifo(integers, LENGTH, i);
+        else
+            lru(integers, LENGTH, i);
         printSample(integers, LENGTH, i, MIN);
-        min(integers, LENGTH, i);
+        if (i == 1)
+            fifo(integers, LENGTH, i);
+        else
+            min(integers, LENGTH, i);
         printSample(integers, LENGTH, i, CLOCK);
-        clock(integers, LENGTH, i);
+        if (i == 1)
+            fifo(integers, LENGTH, i);
+        else
+            clock(integers, LENGTH, i);
         printSample(integers, LENGTH, i, SECOND_CHANCE);
-        second_chance(integers, LENGTH, i);
+        if (i == 1)
+            fifo(integers, LENGTH, i);
+        else
+            second_chance(integers, LENGTH, i);
     }
 }
 
