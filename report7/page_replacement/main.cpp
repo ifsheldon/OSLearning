@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 
-//#define DEBUG
+#define DEBUG
 using namespace std;
 enum Algorithm
 {
@@ -207,7 +207,8 @@ inline void printResult(int pageNum, int cacheMiss)
     float hitRatio = (float) (hit * 100) / (float) pageNum;
     hit = ceil(hitRatio * 100.0f);
     hitRatio = (float) hit / 100.0f;
-    cout << "Hit ratio = " << setfill('0') << setw(5) << setprecision(4) << hitRatio << "%" << endl;
+    cout << "Hit ratio = " << hitRatio << endl;
+//    cout << "Hit ratio = " << setfill('0') << setw(5) << setprecision(4) << hitRatio << "%" << endl;
 }
 
 inline void fifo(const int *pageSequence, int length, int cacheSize)
@@ -273,10 +274,8 @@ inline void min(const int *pageSequence, int length, int cacheSize)
         {
             int prevOccurIndex = found->second;
             nextOccurIndices[prevOccurIndex] = idx;
-        } else
-        {
-            nextOccurIndices[idx] = length;
         }
+        nextOccurIndices[idx] = length;
         prevIndices[page] = idx;
     }
     unordered_map<int, int> cachedPages;
@@ -312,44 +311,6 @@ inline void min(const int *pageSequence, int length, int cacheSize)
     printResult(length, missCount);
     delete[] nextOccurIndices;
 }
-
-//inline void clock_pp(const int *pageSequence, int length, int cacheSize)
-//{
-//    unordered_map<int, int> cachedPages;
-//    int *pages = new int[cacheSize];
-//    bool *validBits = new bool[cacheSize];
-//    int clockArm = 0;
-//    int missCount = 0;
-//    for (int i = 0; i < length; i++)
-//    {
-//        int page = pageSequence[i];
-//        auto found = cachedPages.find(page);
-//        if (found != cachedPages.end())//hit
-//        {
-//            validBits[found->second] = true;
-//        } else
-//        {
-//            missCount++;
-//            if (cachedPages.size() < cacheSize)
-//            {
-//                validBits[cachedPages.size()] = true;
-//                pages[cachedPages.size()] = page;
-//                cachedPages[page] = cachedPages.size();
-//            } else
-//            {
-//                for (; validBits[clockArm]; validBits[clockArm] = false, clockArm++, clockArm %= cacheSize);
-//                validBits[clockArm] = true;
-//                int previousPage = pages[clockArm];
-//                cachedPages.erase(previousPage);
-//                cachedPages[page] = clockArm;
-//                pages[clockArm] = page;
-//            }
-//        }
-//    }
-//    printResult(length, missCount);
-//    delete[] pages;
-//    delete[] validBits;
-//}
 
 inline void clock(const int *pageSequence, int length, int cacheSize)
 {
@@ -522,8 +483,8 @@ inline void printSample(int *integers, int length, int cacheSize, int method)
     cout << cacheSize << endl;
     cout << method << endl;
     cout << length << endl;
-//    for (int i = 0; i < length; i++)
-//        cout << integers[i] << " ";
+    for (int i = 0; i < length; i++)
+        cout << integers[i] << " ";
     cout << endl;
 }
 
@@ -540,20 +501,16 @@ void random_sample()
             integer %= 1000;
             integer++;
         }
-        printSample(integers, LENGTH, 4, FIFO);
-        fifo(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, LRU);
-        lru(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, MIN);
-        min(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, CLOCK);
-        clock(integers, LENGTH, 4);
-        printSample(integers, LENGTH, 4, SECOND_CHANCE);
-        second_chance(integers, LENGTH, 4);
-//        printSample(integers, LENGTH, i, CLOCK);
-//        clock(integers, LENGTH, i);
-//        printSample(integers, LENGTH, i, 33);
-//        clock_pp(integers, LENGTH, i);
+        printSample(integers, LENGTH, i, FIFO);
+        fifo(integers, LENGTH, i);
+        printSample(integers, LENGTH, i, LRU);
+        lru(integers, LENGTH, i);
+        printSample(integers, LENGTH, i, MIN);
+        min(integers, LENGTH, i);
+        printSample(integers, LENGTH, i, CLOCK);
+        clock(integers, LENGTH, i);
+        printSample(integers, LENGTH, i, SECOND_CHANCE);
+        second_chance(integers, LENGTH, i);
     }
 }
 
@@ -579,7 +536,6 @@ int main()
         return -1;
     }
     Algorithm algorithm = Algorithm(algo);
-//    unique_ptr<int[]> pageSequence(new int[numOfPages]);
     int *pageSequence = new int[numOfPages];
     for (int i = 0; i < numOfPages; i++)
         cin >> pageSequence[i];
