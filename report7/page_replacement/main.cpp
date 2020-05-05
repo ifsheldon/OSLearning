@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 
-#define DEBUG
+//#define DEBUG
 using namespace std;
 enum Algorithm
 {
@@ -207,7 +207,7 @@ inline void printResult(int pageNum, int cacheMiss)
     float hitRatio = (float) (hit * 100) / (float) pageNum;
     hit = ceil(hitRatio * 100.0f);
     hitRatio = (float) hit / 100.0f;
-    cout << "Hit ratio = " << setprecision(4) << hitRatio << "%" << endl;
+    cout << "Hit ratio = " << setfill('0') << setw(5) << setprecision(4) << hitRatio << "%" << endl;
 }
 
 inline void fifo(const int *pageSequence, int length, int cacheSize)
