@@ -82,47 +82,60 @@ private:
     Node *head;
     Node *tail;
 
-    inline void initLinkedList()
-    {
-        nodes[0].prev = nullptr;
-        nodes[0].next = nodes + 1;
-        nodes[capacity - 1].next = nullptr;
-        nodes[capacity - 1].prev = nodes + (capacity - 2);
-        for (int i = 1; i < capacity - 1; i++)
-        {
-            nodes[i].prev = nodes + (i - 1);
-            nodes[i].next = nodes + (i + 1);
-        }
-    }
-
 public:
     explicit LRUQueue(int size)
     {
         capacity = size;
         nodes = new Node[size];
-        head = nodes;
-        tail = nodes;
-        initLinkedList();
+        for (int i = 0; i < size; i++)
+        {
+            nodes[i].prev = nullptr;
+            nodes[i].next = nullptr;
+        }
+        head = nullptr;
+        tail = nullptr;
     }
 
     int addNode(int i)
     {
         if (map.size() < capacity)
         {
-            tail->val = i;
-            map[i] = tail;
-            if (map.size() < capacity) tail++;
+            Node *newNode = nodes + map.size();
+            newNode->next = nullptr;
+            newNode->val = i;
+            if (head == nullptr && tail == nullptr)
+            {
+                head = newNode;
+                tail = newNode;
+            }
+//            else if (head == nullptr && tail == nullptr)
+//            {
+//                cout << "THIS SHOULD NOT HAPPEN!------------------------" << endl;
+//                return INT_MAX;
+//            } else if (head != nullptr && tail == nullptr)
+//            {
+//                cout << "THIS SHOULD NOT HAPPEN!########################" << endl;
+//                return INT_MAX;
+//            }
+            else
+            {
+                tail->next = newNode;
+                newNode->prev = tail;
+                newNode->next = nullptr;
+                tail = newNode;
+            }
+            map[i] = newNode;
             return INT_MIN;
         } else
         {
             int previous = head->val;
             map.erase(previous);
             Node *newNode = head;
-            map[i] = newNode;
             head = head->next;
-            newNode->prev = tail;
             newNode->val = i;
+            newNode->prev = tail;
             newNode->next = nullptr;
+            map[i] = newNode;
             tail->next = newNode;
             tail = newNode;
             return previous;
@@ -150,6 +163,20 @@ public:
             tail = node;
         }
     }
+
+#ifdef DEBUG
+
+    bool error()
+    {
+        Node *current = head;
+        while (current->next != nullptr)
+        {
+            current = current->next;
+        }
+        return current != tail;
+    }
+
+#endif
 
     bool replace(int origin, int newOne)
     {
@@ -258,6 +285,10 @@ inline void lru(const int *pageSequence, int length, int cacheSize)
             missCount++;
             lruQueue.addNode(page);
         }
+#ifdef DEBUG
+        bool error = lruQueue.error();
+        int j = 1;
+#endif
     }
     printResult(length, missCount);
 }
@@ -502,23 +533,29 @@ void random_sample()
             integer++;
         }
         printSample(integers, LENGTH, i, FIFO);
+//        cout << "------------------ " << i << endl;
+//        cout << "fifo" << endl;
         fifo(integers, LENGTH, i);
         printSample(integers, LENGTH, i, LRU);
+//        cout << "lru" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
             lru(integers, LENGTH, i);
         printSample(integers, LENGTH, i, MIN);
+//        cout << "min" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
             min(integers, LENGTH, i);
         printSample(integers, LENGTH, i, CLOCK);
+//        cout << "clock" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
             clock(integers, LENGTH, i);
         printSample(integers, LENGTH, i, SECOND_CHANCE);
+//        cout << "second_chance" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
