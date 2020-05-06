@@ -5,7 +5,7 @@
 #include <cmath>
 #include <iomanip>
 
-#define DEBUG
+//#define DEBUG
 using namespace std;
 enum Algorithm
 {
@@ -227,15 +227,14 @@ public:
 };
 
 
-//TODO: fix the output format. Sample1Output: 05.56%, my output 5.56%
+//TODO:Sample1Output: 05.56%, my output 5.56%; format fixed, check round up
 inline void printResult(int pageNum, int cacheMiss)
 {
     int hit = pageNum - cacheMiss;
     float hitRatio = (float) (hit * 100) / (float) pageNum;
     hit = ceil(hitRatio * 100.0f);
     hitRatio = (float) hit / 100.0f;
-    cout << "Hit ratio = " << hitRatio << endl;
-//    cout << "Hit ratio = " << setfill('0') << setw(5) << setprecision(4) << hitRatio << "%" << endl;
+    cout << "Hit ratio = " << std::fixed << setfill('0') << setw(5) << setprecision(2) << hitRatio << "%" << endl;
 }
 
 inline void fifo(const int *pageSequence, int length, int cacheSize)
