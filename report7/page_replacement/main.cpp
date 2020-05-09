@@ -24,7 +24,7 @@ public:
     explicit FIFOQueue(int size)
     {
         this->maxCapacity = size;
-        this->integers = new int[size];
+        this->integers = new int[size]; // take the idea of SLAB allocator
         this->head = 0;
         this->tail = 0;
     }
@@ -86,7 +86,7 @@ public:
     explicit LRUQueue(int size)
     {
         capacity = size;
-        nodes = new Node[size];
+        nodes = new Node[size]; // take the idea of SLAB allocator
         for (int i = 0; i < size; i++)
         {
             nodes[i].prev = nullptr;
