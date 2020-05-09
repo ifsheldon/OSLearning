@@ -108,15 +108,6 @@ public:
                 head = newNode;
                 tail = newNode;
             }
-//            else if (head == nullptr && tail == nullptr)
-//            {
-//                cout << "THIS SHOULD NOT HAPPEN!------------------------" << endl;
-//                return INT_MAX;
-//            } else if (head != nullptr && tail == nullptr)
-//            {
-//                cout << "THIS SHOULD NOT HAPPEN!########################" << endl;
-//                return INT_MAX;
-//            }
             else
             {
                 tail->next = newNode;
@@ -227,7 +218,6 @@ public:
 };
 
 
-//TODO:Sample1Output: 05.56%, my output 5.56%; format fixed, check round up
 inline void printResult(int pageNum, int cacheMiss)
 {
     int hit = pageNum - cacheMiss;
@@ -532,29 +522,23 @@ void random_sample()
             integer++;
         }
         printSample(integers, LENGTH, i, FIFO);
-//        cout << "------------------ " << i << endl;
-//        cout << "fifo" << endl;
         fifo(integers, LENGTH, i);
         printSample(integers, LENGTH, i, LRU);
-//        cout << "lru" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
             lru(integers, LENGTH, i);
         printSample(integers, LENGTH, i, MIN);
-//        cout << "min" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
             min(integers, LENGTH, i);
         printSample(integers, LENGTH, i, CLOCK);
-//        cout << "clock" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
             clock(integers, LENGTH, i);
         printSample(integers, LENGTH, i, SECOND_CHANCE);
-//        cout << "second_chance" << endl;
         if (i == 1)
             fifo(integers, LENGTH, i);
         else
@@ -611,6 +595,7 @@ int main()
             break;
         default:
             cout << "Error" << endl;
+            delete[] pageSequence;
             return -1;
     }
 
