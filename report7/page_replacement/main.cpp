@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <iomanip>
-
+#pragma GCC optimize("O3")
 //#define DEBUG
 using namespace std;
 enum Algorithm
