@@ -32,17 +32,9 @@ int main()
         sum += requests[0] - requests[idx - 1];
     }
     rotate(requests, requests + idx, requests + numOfRequest + 1);
-//    int previousTrack = startTrackNum;
-//    int disSum = 0;
-//    for (int i = 0; i <= numOfRequest; i++)
-//    {
-//        disSum += abs(requests[i] - previousTrack);
-//        previousTrack = requests[i];
-//    }
     for (int i = 0; i <= numOfRequest; i++)
         cout << requests[i] << " ";
     cout << endl;
-//    cout << disSum << endl;
     cout << sum << endl;
     delete[] requests;
     return 0;
