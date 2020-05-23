@@ -61,9 +61,9 @@ a.
 
 ​	(2). 
 
-​	Ignoring the queuing time.
+​	Ignoring the queuing time and transfer time.
 
-​	Total Seek Time = ((199-0)+(199-100)+(90-0))*1ms = 288ms
+​	Total Seek Time = ((199-0)+(199-100)+(90-0))*1ms = 388ms
 
 ​	Assuming sector access with an uniform distribution:
 
@@ -73,7 +73,7 @@ a.
 
 ​		So to read six sectors, the time needed is 6*2.5ms=15ms
 
-​	So the total time needed = 15ms + 288ms = 303ms
+​	So the total time needed = 15ms + 388ms = 403ms
 
 b. 
 
